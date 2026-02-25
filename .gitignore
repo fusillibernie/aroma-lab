@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Type checking
+.mypy_cache/
+
+# Data files (keep structure, ignore contents)
+data/aromachemicals/*.json
+data/aromachemicals/*.csv
+data/gcms_profiles/*.csv
+data/gcms_profiles/*.json
+data/literature/*.pdf
+data/literature/*.json
+!data/**/.gitkeep
+
+# Secrets
+.env
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
