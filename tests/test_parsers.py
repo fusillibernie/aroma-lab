@@ -30,8 +30,14 @@ class TestCSVParser:
 
             assert profile is not None
             assert len(profile.peaks) == 3
-            assert profile.peaks[0].retention_time == pytest.approx(5.23)
-            assert profile.peaks[1].area_percent == pytest.approx(25.3)
+            # Peaks are sorted by area_percent descending
+            # Peak 0: Linalool (25.3%, RT 8.45)
+            # Peak 1: Limonene (15.5%, RT 5.23)
+            # Peak 2: Geraniol (10.2%, RT 12.67)
+            assert profile.peaks[0].retention_time == pytest.approx(8.45)
+            assert profile.peaks[0].area_percent == pytest.approx(25.3)
+            assert profile.peaks[1].retention_time == pytest.approx(5.23)
+            assert profile.peaks[1].area_percent == pytest.approx(15.5)
         finally:
             temp_path.unlink()
 

@@ -43,14 +43,19 @@ htmlcov/
 # Type checking
 .mypy_cache/
 
-# Data files (keep structure, ignore contents)
-data/aromachemicals/*.json
+# Data files (keep structure, ignore user content)
 data/aromachemicals/*.csv
 data/gcms_profiles/*.csv
 data/gcms_profiles/*.json
 data/literature/*.pdf
 data/literature/*.json
 !data/**/.gitkeep
+
+# Track core aromachemical reference data
+!data/aromachemicals/common_aromachemicals.json
+!data/aromachemicals/expanded_aromachemicals.json
+!data/aromachemicals/extended_palette.json
+!data/aromachemicals/botanical_notes.json
 
 # Secrets
 .env
