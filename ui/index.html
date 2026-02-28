@@ -3,262 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aroma Lab - GC-MS Reconstruction</title>
+    <title>Aroma Lab - GC-MS Fragrance Reconstruction</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
+        :root {
+            --primary: #00bcd4;
+            --primary-dark: #0097a7;
+            --primary-light: #4dd0e1;
+            --bg-dark: #0d1b2a;
+            --bg-card: #1b2838;
+            --bg-input: #233445;
+            --text: #e8eaed;
+            --text-muted: #8b9aab;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --top-note: #ff6b6b;
+            --heart-note: #4ecdc4;
+            --base-note: #9b59b6;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e8e8e8;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #152238 100%);
+            color: var(--text);
             min-height: 100vh;
         }
         .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 0; border-bottom: 1px solid #333;
+            padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
         }
-        h1 { font-size: 2rem; color: #f0a500; }
-        .subtitle { color: #888; font-size: 0.9rem; }
-        .tabs { display: flex; gap: 10px; margin: 20px 0; }
-        .tab {
-            padding: 12px 24px; background: #2a2a4a; border: none;
-            color: #aaa; cursor: pointer; border-radius: 8px 8px 0 0;
-            font-size: 1rem; transition: all 0.3s;
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 40px; height: 40px; background: var(--primary);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
         }
-        .tab:hover { background: #3a3a5a; color: #fff; }
-        .tab.active { background: #f0a500; color: #1a1a2e; }
-        .panel { display: none; background: #252540; border-radius: 0 8px 8px 8px; padding: 20px; }
-        .panel.active { display: block; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        .card {
-            background: #1e1e38; border-radius: 12px; padding: 20px;
-            border: 1px solid #333;
+        h1 { font-size: 1.6rem; color: var(--text); font-weight: 600; }
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .chem-count {
+            background: var(--bg-card); padding: 8px 14px; border-radius: 20px;
+            font-size: 0.85rem; color: var(--primary);
         }
-        .card h3 { color: #f0a500; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .card h3 .badge { font-size: 0.75rem; background: #444; padding: 4px 8px; border-radius: 12px; }
-        input, select, textarea {
-            width: 100%; padding: 10px; border-radius: 6px;
-            border: 1px solid #444; background: #2a2a4a;
-            color: #fff; margin-bottom: 10px;
-        }
-        input:focus, select:focus { border-color: #f0a500; outline: none; }
-        button {
-            padding: 10px 20px; background: #f0a500; color: #1a1a2e;
-            border: none; border-radius: 6px; cursor: pointer;
-            font-weight: bold; transition: all 0.3s;
-        }
-        button:hover { background: #ffb733; transform: translateY(-2px); }
-        button.secondary { background: #3498db; color: #fff; }
-        button.success { background: #27ae60; color: #fff; }
-        button.danger { background: #e74c3c; color: #fff; }
-        button:disabled { background: #555; cursor: not-allowed; transform: none; }
-        .chemical-list { max-height: 400px; overflow-y: auto; }
-        .chemical-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px; border-bottom: 1px solid #333;
-            transition: background 0.2s; cursor: pointer;
-        }
-        .chemical-item:hover { background: #2a2a4a; }
-        .chemical-name { font-weight: bold; color: #fff; }
-        .chemical-odor { font-size: 0.85rem; color: #888; margin-top: 4px; }
-        .chemical-cas { font-size: 0.75rem; color: #666; }
-        .volatility-badge {
-            padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-        .volatility-top { background: #ff6b6b; color: #fff; }
-        .volatility-heart { background: #4ecdc4; color: #fff; }
-        .volatility-base { background: #9b59b6; color: #fff; }
-        .formula-ingredients { margin-top: 15px; }
-        .ingredient-row {
-            display: flex; gap: 10px; align-items: center;
-            padding: 8px; background: #2a2a4a; border-radius: 6px;
-            margin-bottom: 8px;
-        }
-        .ingredient-row input { width: 80px; margin: 0; }
-        .ingredient-name { flex: 1; }
-        .remove-btn { background: #e74c3c; padding: 5px 10px; }
-        .pyramid-container { display: flex; flex-direction: column; align-items: center; }
-        .pyramid-level {
-            padding: 15px; text-align: center; margin: 5px 0;
-            border-radius: 8px;
-        }
-        .pyramid-top { width: 60%; background: rgba(255, 107, 107, 0.3); border: 2px solid #ff6b6b; }
-        .pyramid-heart { width: 75%; background: rgba(78, 205, 196, 0.3); border: 2px solid #4ecdc4; }
-        .pyramid-base { width: 90%; background: rgba(155, 89, 182, 0.3); border: 2px solid #9b59b6; }
-        .upload-zone {
-            border: 2px dashed #444; border-radius: 12px;
-            padding: 40px; text-align: center; cursor: pointer;
-            transition: all 0.3s;
-        }
-        .upload-zone:hover { border-color: #f0a500; background: rgba(240, 165, 0, 0.1); }
-        .upload-zone.dragover { border-color: #27ae60; background: rgba(39, 174, 96, 0.2); }
-        .chromatogram { margin-top: 20px; }
-        #chart { width: 100%; height: 250px; }
-        .search-filters { display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-filters input, .search-filters select { width: auto; flex: 1; }
 
-        /* Inline Search */
-        .inline-search {
+        /* Tabs */
+        .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab {
+            padding: 12px 20px; background: var(--bg-card); border: none;
+            color: var(--text-muted); cursor: pointer; border-radius: 10px 10px 0 0;
+            font-size: 0.9rem; font-weight: 500; transition: all 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tab:hover { background: var(--bg-input); color: var(--text); }
+        .tab.active { background: var(--primary); color: #fff; }
+        .tab-icon { font-size: 1.1rem; }
+
+        /* Panels */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); border-radius: 12px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .card h3 {
+            color: var(--text); font-size: 1.1rem; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .card-icon { color: var(--primary); font-size: 1.2rem; }
+
+        /* Grid layouts */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 900px) {
+            .grid, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* Form elements */
+        input, select, textarea {
+            width: 100%; padding: 12px 14px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1); background: var(--bg-input);
+            color: var(--text); font-size: 0.95rem; margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary); outline: none;
+            box-shadow: 0 0 0 3px rgba(0,188,212,0.2);
+        }
+        input::placeholder { color: var(--text-muted); }
+
+        /* Buttons */
+        button {
+            padding: 12px 20px; background: var(--primary); color: #fff;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        button.secondary { background: var(--bg-input); }
+        button.secondary:hover { background: #2a4058; }
+        button.success { background: var(--success); }
+        button.danger { background: var(--danger); }
+        button:disabled { background: #3a4a5e; cursor: not-allowed; transform: none; opacity: 0.6; }
+        .btn-icon { font-size: 1rem; }
+
+        /* Workflow Steps */
+        .workflow-steps {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            background: var(--bg-card); padding: 16px; border-radius: 12px;
+        }
+        .workflow-step {
+            flex: 1; padding: 16px; text-align: center;
+            background: var(--bg-input); border-radius: 10px;
+            border: 2px solid transparent; transition: all 0.3s;
             position: relative;
         }
-        .inline-search-results {
-            position: absolute; top: 100%; left: 0; right: 0;
-            background: #1e1e38; border: 1px solid #444;
-            border-radius: 6px; max-height: 300px; overflow-y: auto;
-            z-index: 100; display: none;
+        .workflow-step::after {
+            content: ''; position: absolute; right: -14px; top: 50%;
+            transform: translateY(-50%); width: 0; height: 0;
+            border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+            border-left: 8px solid var(--bg-input);
         }
-        .inline-search-results.show { display: block; }
-        .search-result-item {
-            padding: 10px; border-bottom: 1px solid #333;
-            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        .workflow-step:last-child::after { display: none; }
+        .workflow-step.active { border-color: var(--primary); background: rgba(0,188,212,0.1); }
+        .workflow-step.complete { background: rgba(76,175,80,0.15); border-color: var(--success); }
+        .step-num {
+            width: 32px; height: 32px; line-height: 32px;
+            background: var(--bg-card); border-radius: 50%;
+            display: inline-block; margin-bottom: 8px; font-weight: 600;
         }
-        .search-result-item:hover { background: #2a2a4a; }
-        .search-result-item .info { flex: 1; }
-        .search-result-item .name { font-weight: bold; }
-        .search-result-item .odor { font-size: 0.8rem; color: #888; }
+        .workflow-step.active .step-num { background: var(--primary); color: #fff; }
+        .workflow-step.complete .step-num { background: var(--success); color: #fff; }
+        .step-label { font-size: 0.85rem; color: var(--text-muted); }
+        .workflow-step.active .step-label, .workflow-step.complete .step-label { color: var(--text); }
 
-        /* Peak Table */
-        .peak-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .peak-table th, .peak-table td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        .peak-table th { background: #1a1a2e; position: sticky; top: 0; }
-        .peak-table tr:hover { background: #2a2a4a; }
-        .peak-table-container { max-height: 400px; overflow-y: auto; }
-
-        /* Match Status */
-        .match-status {
-            padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px;
+            padding: 50px 30px; text-align: center; cursor: pointer;
+            transition: all 0.3s; background: rgba(0,0,0,0.2);
         }
-        .match-exact { background: #27ae60; color: #fff; }
-        .match-fuzzy { background: #f39c12; color: #fff; }
-        .match-partial { background: #e67e22; color: #fff; }
-        .match-none { background: #e74c3c; color: #fff; }
-
-        /* Confidence Meter */
-        .confidence-meter {
-            width: 60px; height: 8px; background: #333;
-            border-radius: 4px; overflow: hidden;
+        .upload-zone:hover { border-color: var(--primary); background: rgba(0,188,212,0.05); }
+        .upload-zone.dragover { border-color: var(--success); background: rgba(76,175,80,0.1); }
+        .upload-icon { font-size: 3rem; margin-bottom: 16px; }
+        .upload-title { font-size: 1.2rem; margin-bottom: 8px; }
+        .upload-hint { color: var(--text-muted); font-size: 0.9rem; }
+        .upload-formats {
+            display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap;
         }
-        .confidence-fill {
-            height: 100%; border-radius: 4px;
-            transition: width 0.3s;
+        .format-badge {
+            background: var(--bg-input); padding: 6px 12px; border-radius: 6px;
+            font-size: 0.8rem; color: var(--text-muted);
         }
 
         /* Stats Bar */
         .stats-bar {
-            display: flex; gap: 20px; padding: 15px;
-            background: #1a1a2e; border-radius: 8px; margin-bottom: 15px;
+            display: flex; gap: 20px; padding: 16px;
+            background: var(--bg-input); border-radius: 10px; margin-bottom: 16px;
         }
-        .stat { text-align: center; }
-        .stat .value { font-size: 1.5rem; font-weight: bold; color: #f0a500; }
-        .stat .label { font-size: 0.8rem; color: #888; }
+        .stat { text-align: center; flex: 1; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* Peak Table */
+        .peak-table-container { max-height: 400px; overflow-y: auto; border-radius: 8px; }
+        .peak-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .peak-table th, .peak-table td {
+            padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .peak-table th {
+            background: var(--bg-input); position: sticky; top: 0; z-index: 10;
+            font-weight: 600; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;
+        }
+        .peak-table tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* Match Status Badges */
+        .match-status {
+            padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+        }
+        .match-exact { background: rgba(76,175,80,0.2); color: var(--success); }
+        .match-fuzzy { background: rgba(255,152,0,0.2); color: var(--warning); }
+        .match-partial { background: rgba(255,152,0,0.15); color: #ffb74d; }
+        .match-none { background: rgba(244,67,54,0.2); color: var(--danger); }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            width: 60px; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 3px; overflow: hidden;
+        }
+        .confidence-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+        /* Chemical List */
+        .chemical-list { max-height: 450px; overflow-y: auto; }
+        .chemical-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s; cursor: pointer;
+        }
+        .chemical-item:hover { background: rgba(255,255,255,0.03); }
+        .chemical-name { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .chemical-odor { font-size: 0.85rem; color: var(--text-muted); }
+        .chemical-cas { font-size: 0.75rem; color: var(--text-muted); opacity: 0.7; }
+
+        /* Volatility Badges */
+        .volatility-badge {
+            padding: 5px 10px; border-radius: 6px; font-size: 0.75rem;
+            text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;
+        }
+        .volatility-top { background: rgba(255,107,107,0.2); color: var(--top-note); }
+        .volatility-heart { background: rgba(78,205,196,0.2); color: var(--heart-note); }
+        .volatility-base { background: rgba(155,89,182,0.2); color: var(--base-note); }
+
+        /* Pyramid */
+        .pyramid-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .pyramid-level {
+            padding: 16px; text-align: center; border-radius: 10px;
+            transition: all 0.3s; min-height: 60px;
+        }
+        .pyramid-level h4 { font-size: 0.85rem; margin-bottom: 8px; opacity: 0.8; }
+        .pyramid-level .items { font-size: 0.9rem; }
+        .pyramid-top {
+            width: 50%; background: rgba(255,107,107,0.15);
+            border: 2px solid var(--top-note);
+        }
+        .pyramid-heart {
+            width: 70%; background: rgba(78,205,196,0.15);
+            border: 2px solid var(--heart-note);
+        }
+        .pyramid-base {
+            width: 90%; background: rgba(155,89,182,0.15);
+            border: 2px solid var(--base-note);
+        }
+
+        /* Inline Search */
+        .inline-search { position: relative; }
+        .inline-search-results {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; max-height: 300px; overflow-y: auto;
+            z-index: 100; display: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        .inline-search-results.show { display: block; }
+        .search-result-item {
+            padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .search-result-item:hover { background: var(--bg-input); }
+        .search-result-item .info { flex: 1; }
+        .search-result-item .name { font-weight: 600; }
+        .search-result-item .odor { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Ingredient Row */
+        .ingredient-row {
+            display: flex; gap: 10px; align-items: center;
+            padding: 10px; background: var(--bg-input); border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .ingredient-row .ingredient-name { flex: 1; font-weight: 500; }
+        .ingredient-row input { width: 70px; margin: 0; text-align: center; }
+        .remove-btn {
+            background: var(--danger); padding: 8px 12px; font-size: 0.8rem;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px; border-radius: 10px; color: #fff;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.4);
+            animation: slideIn 0.3s ease-out;
+            min-width: 280px; font-size: 0.9rem;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+        .toast-icon { font-size: 1.2rem; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Help Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-card); border-radius: 16px; padding: 28px;
+            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal h2 { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; background: none;
+            border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;
+        }
+        .shortcut-list { list-style: none; }
+        .shortcut-list li {
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .shortcut-key {
+            background: var(--bg-input); padding: 4px 10px; border-radius: 6px;
+            font-family: monospace; font-size: 0.85rem;
+        }
 
         /* Loading */
-        .loading { text-align: center; padding: 40px; color: #888; }
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
         .spinner {
-            width: 40px; height: 40px;
-            border: 4px solid #333;
-            border-top-color: #f0a500;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            width: 40px; height: 40px; border: 3px solid var(--bg-input);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Workflow Steps */
-        .workflow-steps {
-            display: flex; gap: 10px; margin-bottom: 20px;
+        /* Empty State */
+        .empty-state {
+            text-align: center; padding: 40px 20px; color: var(--text-muted);
         }
-        .workflow-step {
-            flex: 1; padding: 15px; text-align: center;
-            background: #2a2a4a; border-radius: 8px;
-            border: 2px solid transparent;
-        }
-        .workflow-step.active { border-color: #f0a500; }
-        .workflow-step.complete { background: #27ae60; }
-        .workflow-step .step-num {
-            width: 30px; height: 30px; line-height: 30px;
-            background: #444; border-radius: 50%;
-            display: inline-block; margin-bottom: 5px;
-        }
-        .workflow-step.active .step-num { background: #f0a500; color: #1a1a2e; }
-        .workflow-step.complete .step-num { background: #fff; color: #27ae60; }
+        .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+        .empty-title { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+        .empty-hint { font-size: 0.9rem; }
 
-        /* Unmatched Panel */
+        /* Badge */
+        .badge {
+            font-size: 0.75rem; background: var(--bg-input); padding: 4px 10px;
+            border-radius: 12px; margin-left: 8px;
+        }
+
+        /* Tooltip */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip); position: absolute; bottom: 100%;
+            left: 50%; transform: translateX(-50%); padding: 8px 12px;
+            background: #1a1a2e; color: var(--text); font-size: 0.8rem;
+            border-radius: 6px; white-space: nowrap; z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 8px;
+        }
+
+        /* Search Filters */
+        .search-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-filters input, .search-filters select { width: auto; flex: 1; min-width: 150px; }
+
+        /* Generated Formula Section */
+        .formula-section { margin-top: 20px; }
         .unmatched-item {
-            padding: 10px; background: rgba(231, 76, 60, 0.2);
-            border: 1px solid #e74c3c; border-radius: 6px;
+            padding: 12px; background: rgba(244,67,54,0.1);
+            border: 1px solid rgba(244,67,54,0.3); border-radius: 8px;
             margin-bottom: 10px;
         }
-        .alternatives-list {
-            margin-top: 8px; padding-left: 15px;
-        }
+        .alternatives-list { margin-top: 10px; padding-left: 12px; }
         .alternative {
-            padding: 4px 8px; background: #2a2a4a;
-            border-radius: 4px; margin: 4px 0;
-            font-size: 0.85rem; cursor: pointer;
+            padding: 6px 12px; background: var(--bg-input);
+            border-radius: 6px; margin: 4px 0; font-size: 0.85rem; cursor: pointer;
+            display: inline-block; margin-right: 6px;
         }
-        .alternative:hover { background: #3a3a5a; }
+        .alternative:hover { background: var(--primary); color: #fff; }
+
+        /* Help Button */
+        .help-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: var(--text-muted); transition: all 0.2s;
+        }
+        .help-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* Chromatogram */
+        #chart { width: 100%; height: 200px; }
+
+        /* Reference Detail */
+        .ref-meta {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+            margin-bottom: 16px; font-size: 0.9rem;
+        }
+        .ref-meta-item { }
+        .ref-meta-label { color: var(--text-muted); font-size: 0.8rem; }
+        .ref-meta-value { color: var(--text); margin-top: 2px; }
+        .ref-description {
+            padding: 14px; background: var(--bg-input); border-radius: 8px;
+            margin-bottom: 16px; font-style: italic; color: var(--text-muted);
+        }
+        .composition-list {
+            max-height: 200px; overflow-y: auto; margin-bottom: 16px;
+        }
+        .composition-item {
+            display: flex; justify-content: space-between; padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .comp-name { flex: 1; }
+        .comp-percent { color: var(--primary); font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div>
-                <h1>Aroma Lab</h1>
-                <span class="subtitle">Fragrance Reconstruction from GC-MS Analysis</span>
+            <div class="logo">
+                <div class="logo-icon">&#128172;</div>
+                <div>
+                    <h1>Aroma Lab</h1>
+                    <div class="subtitle">GC-MS Fragrance Reconstruction</div>
+                </div>
             </div>
-            <span id="chemCount">Loading...</span>
+            <div class="header-actions">
+                <span class="chem-count" id="chemCount">Loading...</span>
+                <button class="help-btn" onclick="showHelp()" data-tooltip="Help (?)">?</button>
+            </div>
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="showPanel('gcms')">GC-MS Reconstruction</button>
-            <button class="tab" onclick="showPanel('references')">Reference Naturals</button>
-            <button class="tab" onclick="showPanel('formulator')">Formula Builder</button>
-            <button class="tab" onclick="showPanel('database')">Chemical Database</button>
+            <button class="tab active" onclick="showPanel('gcms')">
+                <span class="tab-icon">&#128200;</span> GC-MS Reconstruction
+            </button>
+            <button class="tab" onclick="showPanel('references')">
+                <span class="tab-icon">&#127811;</span> Reference Naturals
+            </button>
+            <button class="tab" onclick="showPanel('formulator')">
+                <span class="tab-icon">&#128218;</span> Formula Builder
+            </button>
+            <button class="tab" onclick="showPanel('database')">
+                <span class="tab-icon">&#128269;</span> Database
+            </button>
         </div>
 
-        <!-- GC-MS Reconstruction Panel (PRIMARY) -->
+        <!-- GC-MS Reconstruction Panel -->
         <div id="gcms" class="panel active">
             <div class="workflow-steps">
                 <div class="workflow-step active" id="step1">
                     <div class="step-num">1</div>
-                    <div>Upload GC-MS</div>
+                    <div class="step-label">Upload GC-MS</div>
                 </div>
                 <div class="workflow-step" id="step2">
                     <div class="step-num">2</div>
-                    <div>Review Matches</div>
+                    <div class="step-label">Review Matches</div>
                 </div>
                 <div class="workflow-step" id="step3">
                     <div class="step-num">3</div>
-                    <div>Generate Formula</div>
+                    <div class="step-label">Generate Formula</div>
                 </div>
             </div>
 
             <div class="grid">
                 <div class="card">
-                    <h3>Upload GC-MS Data</h3>
+                    <h3><span class="card-icon">&#128194;</span> Upload GC-MS Data</h3>
                     <div class="upload-zone" id="uploadZone">
                         <input type="file" id="gcmsFile" accept=".csv,.txt,.msp,.nist" style="display: none;" onchange="uploadGCMS(this)">
-                        <p style="font-size: 1.2rem; margin-bottom: 10px;">Drop file or click to upload</p>
-                        <p style="color: #666;">Supports: NIST MS Search, Shimadzu, Agilent, CSV</p>
+                        <div class="upload-icon">&#128196;</div>
+                        <div class="upload-title">Drop file or click to upload</div>
+                        <div class="upload-hint">Supports multiple GC-MS formats</div>
+                        <div class="upload-formats">
+                            <span class="format-badge">NIST MS</span>
+                            <span class="format-badge">Shimadzu</span>
+                            <span class="format-badge">Agilent</span>
+                            <span class="format-badge">CSV</span>
+                        </div>
                     </div>
 
                     <div id="uploadResult" style="display: none; margin-top: 20px;">
                         <div class="stats-bar" id="uploadStats"></div>
-                        <div class="chromatogram">
-                            <div id="chart"></div>
-                        </div>
+                        <div id="chart"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3>Peak Matches <span class="badge" id="matchStats">-</span></h3>
-                    <div id="matchControls" style="display: none; margin-bottom: 15px;">
-                        <button class="success" onclick="generateFormula()">Generate Formula</button>
-                        <button class="secondary" onclick="exportMatches()">Export CSV</button>
+                    <h3><span class="card-icon">&#127919;</span> Peak Matches <span class="badge" id="matchStats">-</span></h3>
+                    <div id="matchControls" style="display: none; margin-bottom: 16px; display: flex; gap: 10px;">
+                        <button class="success" onclick="generateFormula()">
+                            <span class="btn-icon">&#128161;</span> Generate Formula
+                        </button>
+                        <button class="secondary" onclick="exportMatches()">
+                            <span class="btn-icon">&#128190;</span> Export CSV
+                        </button>
                     </div>
                     <div class="peak-table-container">
                         <table class="peak-table" id="peakTable">
@@ -272,7 +500,13 @@
                                 </tr>
                             </thead>
                             <tbody id="peakTableBody">
-                                <tr><td colspan="5" style="text-align: center; color: #666;">Upload a file to see peaks</td></tr>
+                                <tr><td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">&#128200;</div>
+                                        <div class="empty-title">No data yet</div>
+                                        <div class="empty-hint">Upload a GC-MS file to see peaks</div>
+                                    </div>
+                                </td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -280,21 +514,23 @@
             </div>
 
             <!-- Generated Formula Section -->
-            <div class="card" id="generatedFormula" style="display: none; margin-top: 20px;">
-                <h3>Generated Formula <span class="badge" id="formulaFidelity">-</span></h3>
+            <div class="card formula-section" id="generatedFormula" style="display: none;">
+                <h3><span class="card-icon">&#128161;</span> Generated Formula <span class="badge" id="formulaFidelity">-</span></h3>
                 <div class="grid">
                     <div>
-                        <h4 style="margin-bottom: 10px;">Matched Ingredients</h4>
+                        <h4 style="margin-bottom: 12px; color: var(--success);">&#10003; Matched Ingredients</h4>
                         <div id="matchedIngredients"></div>
                     </div>
                     <div>
-                        <h4 style="margin-bottom: 10px;">Unmatched Compounds</h4>
+                        <h4 style="margin-bottom: 12px; color: var(--danger);">&#10005; Unmatched Compounds</h4>
                         <div id="unmatchedCompounds"></div>
                     </div>
                 </div>
-                <div style="margin-top: 20px;">
-                    <input type="text" id="generatedFormulaName" placeholder="Formula Name">
-                    <button onclick="saveGeneratedFormula()">Save to Formulas</button>
+                <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="generatedFormulaName" placeholder="Formula Name" style="flex: 1; margin: 0;">
+                    <button onclick="saveGeneratedFormula()">
+                        <span class="btn-icon">&#128190;</span> Save Formula
+                    </button>
                 </div>
             </div>
         </div>
@@ -303,17 +539,21 @@
         <div id="references" class="panel">
             <div class="grid">
                 <div class="card">
-                    <h3>Reference Natural Profiles</h3>
-                    <p style="color: #888; margin-bottom: 15px;">
-                        Pre-loaded GC-MS compositions from peer-reviewed literature and public databases.
-                        Select a natural to generate a reconstruction formula.
+                    <h3><span class="card-icon">&#127811;</span> Reference Natural Profiles</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">
+                        Pre-loaded GC-MS compositions from peer-reviewed literature. Select a natural to generate a reconstruction formula.
                     </p>
-                    <div id="referenceList" class="chemical-list" style="max-height: 500px;"></div>
+                    <input type="text" id="refSearch" placeholder="Search naturals..." oninput="filterReferences()" style="margin-bottom: 10px;">
+                    <div id="referenceList" class="chemical-list"></div>
                 </div>
                 <div class="card">
-                    <h3 id="selectedRefName">Select a Natural</h3>
-                    <div id="referenceDetail" style="color: #888;">
-                        Choose a reference profile from the list to see its composition and generate a formula.
+                    <h3 id="selectedRefName"><span class="card-icon">&#127891;</span> Select a Natural</h3>
+                    <div id="referenceDetail">
+                        <div class="empty-state">
+                            <div class="empty-icon">&#127811;</div>
+                            <div class="empty-title">No natural selected</div>
+                            <div class="empty-hint">Choose a reference profile from the list</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,13 +563,13 @@
         <div id="formulator" class="panel">
             <div class="grid">
                 <div class="card">
-                    <h3>Create Formula</h3>
+                    <h3><span class="card-icon">&#128218;</span> Create Formula</h3>
                     <input type="text" id="formulaName" placeholder="Formula Name">
-                    <textarea id="formulaDescription" placeholder="Description" rows="2"></textarea>
+                    <textarea id="formulaDescription" placeholder="Description (optional)" rows="2"></textarea>
 
-                    <h4 style="margin: 15px 0 10px;">Add Ingredient</h4>
+                    <h4 style="margin: 16px 0 10px; color: var(--text-muted);">Add Ingredient</h4>
                     <div class="inline-search">
-                        <input type="text" id="ingredientSearch" placeholder="Search chemicals by name, odor, or CAS..."
+                        <input type="text" id="ingredientSearch" placeholder="Search by name, odor, or CAS..."
                                oninput="searchChemicals(this.value)" autocomplete="off">
                         <div class="inline-search-results" id="searchResults"></div>
                     </div>
@@ -337,44 +577,49 @@
                         <input type="number" id="ingredientPercent" placeholder="%" step="0.1" min="0" max="100" style="width: 100px;">
                         <button onclick="addIngredient()" id="addIngredientBtn" disabled>Add Selected</button>
                     </div>
-                    <div id="selectedChemical" style="margin-top: 10px; padding: 10px; background: #2a2a4a; border-radius: 6px; display: none;">
+                    <div id="selectedChemical" style="margin-top: 12px; padding: 12px; background: var(--bg-input); border-radius: 8px; display: none;">
                         <strong id="selectedName">-</strong>
-                        <div id="selectedOdor" style="font-size: 0.85rem; color: #888;"></div>
+                        <div id="selectedOdor" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"></div>
                     </div>
 
-                    <div class="formula-ingredients" id="formulaIngredients">
-                        <h4>Ingredients</h4>
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 12px; display: flex; justify-content: space-between;">
+                            Ingredients
+                            <span style="color: var(--primary);">Total: <span id="totalPercent">0</span>%</span>
+                        </h4>
                         <div id="ingredientsList"></div>
-                        <div style="margin-top: 15px; text-align: right;">
-                            <strong>Total: <span id="totalPercent">0</span>%</strong>
-                        </div>
                     </div>
 
                     <div style="margin-top: 20px; display: flex; gap: 10px;">
-                        <button onclick="saveFormula()">Save Formula</button>
-                        <button onclick="exportFormula()" class="secondary">Export CSV</button>
+                        <button onclick="saveFormula()">
+                            <span class="btn-icon">&#128190;</span> Save Formula
+                        </button>
+                        <button onclick="exportFormula()" class="secondary">
+                            <span class="btn-icon">&#128196;</span> Export CSV
+                        </button>
+                        <button onclick="clearFormula()" class="secondary">Clear</button>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3>Odor Pyramid</h3>
+                    <h3><span class="card-icon">&#128311;</span> Odor Pyramid</h3>
                     <div class="pyramid-container" id="pyramid">
                         <div class="pyramid-level pyramid-top">
-                            <strong>Top Notes</strong>
-                            <div id="pyramidTop"></div>
+                            <h4>Top Notes</h4>
+                            <div class="items" id="pyramidTop">-</div>
                         </div>
                         <div class="pyramid-level pyramid-heart">
-                            <strong>Heart Notes</strong>
-                            <div id="pyramidHeart"></div>
+                            <h4>Heart Notes</h4>
+                            <div class="items" id="pyramidHeart">-</div>
                         </div>
                         <div class="pyramid-level pyramid-base">
-                            <strong>Base Notes</strong>
-                            <div id="pyramidBase"></div>
+                            <h4>Base Notes</h4>
+                            <div class="items" id="pyramidBase">-</div>
                         </div>
                     </div>
 
-                    <h4 style="margin-top: 20px;">Saved Formulas</h4>
-                    <div id="savedFormulas" style="max-height: 200px; overflow-y: auto;"></div>
+                    <h4 style="margin-top: 24px; margin-bottom: 12px;">Saved Formulas</h4>
+                    <div id="savedFormulas" class="chemical-list" style="max-height: 200px;"></div>
                 </div>
             </div>
         </div>
@@ -382,9 +627,9 @@
         <!-- Database Panel -->
         <div id="database" class="panel">
             <div class="card">
-                <h3>Aromachemical Database</h3>
+                <h3><span class="card-icon">&#128269;</span> Aromachemical Database</h3>
                 <div class="search-filters">
-                    <input type="text" id="search" placeholder="Search chemicals..." oninput="filterChemicals()">
+                    <input type="text" id="search" placeholder="Search by name, odor, or CAS..." oninput="filterChemicals()">
                     <select id="familyFilter" onchange="filterChemicals()">
                         <option value="">All Families</option>
                     </select>
@@ -400,6 +645,38 @@
         </div>
     </div>
 
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal" onclick="if(event.target===this) closeHelp()">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" onclick="closeHelp()">&times;</button>
+            <h2>&#128218; How to Use Aroma Lab</h2>
+
+            <h4 style="margin-top: 20px; color: var(--primary);">GC-MS Reconstruction</h4>
+            <ol style="padding-left: 20px; margin: 10px 0; color: var(--text-muted); line-height: 1.8;">
+                <li>Upload your GC-MS data file (CSV, NIST, Shimadzu, Agilent)</li>
+                <li>Review the detected peaks and their matches</li>
+                <li>Generate a reconstructed formula</li>
+                <li>Fine-tune unmatched compounds manually</li>
+            </ol>
+
+            <h4 style="margin-top: 20px; color: var(--primary);">Reference Naturals</h4>
+            <p style="color: var(--text-muted); margin: 10px 0; line-height: 1.6;">
+                Browse pre-loaded natural oil compositions from literature. Select any natural to generate an aromachemical reconstruction.
+            </p>
+
+            <h4 style="margin-top: 20px; color: var(--primary);">Keyboard Shortcuts</h4>
+            <ul class="shortcut-list">
+                <li><span>Show help</span> <span class="shortcut-key">?</span></li>
+                <li><span>Search database</span> <span class="shortcut-key">Ctrl + K</span></li>
+                <li><span>Save formula</span> <span class="shortcut-key">Ctrl + S</span></li>
+                <li><span>New formula</span> <span class="shortcut-key">Ctrl + N</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
         // State
         let chemicals = [];
@@ -410,6 +687,7 @@
         let generatedFormulaData = null;
         let searchTimeout = null;
         let referenceProfiles = [];
+        let hasSeenHelp = localStorage.getItem('aromalab-help-seen');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -418,13 +696,64 @@
             await loadSavedFormulas();
             await loadReferenceProfiles();
             setupDragDrop();
+            setupKeyboardShortcuts();
+
+            // Show help on first visit
+            if (!hasSeenHelp) {
+                setTimeout(() => showHelp(), 500);
+                localStorage.setItem('aromalab-help-seen', 'true');
+            }
         });
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: '&#10003;', error: '&#10005;', info: '&#128712;' };
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Help modal
+        function showHelp() { document.getElementById('helpModal').classList.add('show'); }
+        function closeHelp() { document.getElementById('helpModal').classList.remove('show'); }
+
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '?' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    showHelp();
+                }
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    showPanel('database');
+                    document.getElementById('search').focus();
+                }
+                if (e.ctrlKey && e.key === 's' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (document.getElementById('formulator').classList.contains('active')) {
+                        saveFormula();
+                    }
+                }
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    clearFormula();
+                    showPanel('formulator');
+                }
+                if (e.key === 'Escape') {
+                    closeHelp();
+                }
+            });
+        }
 
         function showPanel(panelId) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
-            event.target.classList.add('active');
+            event.target.closest('.tab')?.classList.add('active');
         }
 
         // ==================== Reference Profiles ====================
@@ -432,25 +761,38 @@
             try {
                 const res = await fetch('/api/reference-profiles');
                 const data = await res.json();
-                referenceProfiles = data.profiles;
+                referenceProfiles = data.profiles || [];
                 renderReferenceList();
             } catch (err) {
                 console.error('Error loading reference profiles:', err);
             }
         }
 
-        function renderReferenceList() {
+        function filterReferences() {
+            const query = document.getElementById('refSearch').value.toLowerCase();
+            const filtered = referenceProfiles.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                (p.botanical_name || '').toLowerCase().includes(query)
+            );
+            renderReferenceList(filtered);
+        }
+
+        function renderReferenceList(profiles = referenceProfiles) {
             const list = document.getElementById('referenceList');
-            list.innerHTML = referenceProfiles.map(p => `
+            if (!profiles.length) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#127811;</div><div class="empty-hint">No reference profiles found</div></div>';
+                return;
+            }
+            list.innerHTML = profiles.map(p => `
                 <div class="chemical-item" onclick="selectReference('${p.id}')">
                     <div>
                         <div class="chemical-name">${p.name}</div>
                         <div class="chemical-odor">${p.botanical_name || ''}</div>
-                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">${p.olfactive_description?.substring(0, 60) || ''}...</div>
+                        <div class="chemical-cas">${(p.olfactive_description || '').substring(0, 50)}...</div>
                     </div>
                     <div style="text-align: right;">
-                        <span style="color: #f0a500;">${p.peak_count}</span>
-                        <div style="font-size: 0.7rem; color: #666;">compounds</div>
+                        <span style="color: var(--primary); font-weight: 600;">${p.peak_count}</span>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">compounds</div>
                     </div>
                 </div>
             `).join('');
@@ -462,40 +804,44 @@
                 const profile = await res.json();
                 renderReferenceDetail(profile);
             } catch (err) {
-                console.error('Error loading reference:', err);
+                showToast('Error loading reference', 'error');
             }
         }
 
         function renderReferenceDetail(profile) {
-            document.getElementById('selectedRefName').textContent = profile.name;
+            document.getElementById('selectedRefName').innerHTML = `<span class="card-icon">&#127811;</span> ${profile.name}`;
             document.getElementById('referenceDetail').innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <strong>Botanical:</strong> ${profile.botanical_name || '-'}<br>
-                    <strong>Origin:</strong> ${profile.origin || '-'}<br>
-                    <strong>Extraction:</strong> ${profile.extraction_method || '-'}<br>
-                    <strong>Source:</strong> ${profile.source_reference || '-'}
+                <div class="ref-meta">
+                    <div class="ref-meta-item">
+                        <div class="ref-meta-label">Botanical</div>
+                        <div class="ref-meta-value">${profile.botanical_name || '-'}</div>
+                    </div>
+                    <div class="ref-meta-item">
+                        <div class="ref-meta-label">Origin</div>
+                        <div class="ref-meta-value">${profile.origin || '-'}</div>
+                    </div>
+                    <div class="ref-meta-item">
+                        <div class="ref-meta-label">Extraction</div>
+                        <div class="ref-meta-value">${profile.extraction_method || '-'}</div>
+                    </div>
+                    <div class="ref-meta-item">
+                        <div class="ref-meta-label">Source</div>
+                        <div class="ref-meta-value">${profile.source_reference || '-'}</div>
+                    </div>
                 </div>
-                <div style="margin-bottom: 15px; padding: 10px; background: #2a2a4a; border-radius: 6px;">
-                    ${profile.olfactive_description || ''}
-                </div>
+                ${profile.olfactive_description ? `<div class="ref-description">"${profile.olfactive_description}"</div>` : ''}
                 <h4 style="margin-bottom: 10px;">Composition (${profile.peaks?.length || 0} compounds)</h4>
-                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+                <div class="composition-list">
                     ${(profile.peaks || []).map(p => `
-                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333;">
-                            <span>${p.compound_name}</span>
-                            <span style="color: #f0a500;">${p.area_percent}%</span>
+                        <div class="composition-item">
+                            <span class="comp-name">${p.compound_name}</span>
+                            <span class="comp-percent">${p.area_percent}%</span>
                         </div>
                     `).join('')}
                 </div>
-                ${profile.key_markers ? `
-                    <h4 style="margin-bottom: 10px;">Key Character Markers</h4>
-                    <div style="margin-bottom: 15px;">
-                        ${Object.entries(profile.key_markers).map(([cas, desc]) => `
-                            <div style="font-size: 0.85rem; padding: 4px 0; color: #888;">• ${desc}</div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <button class="success" onclick="generateFromReference('${profile.id}')">Generate Formula</button>
+                <button class="success" onclick="generateFromReference('${profile.id}')" style="width: 100%;">
+                    <span class="btn-icon">&#128161;</span> Generate Reconstruction Formula
+                </button>
             `;
         }
 
@@ -504,7 +850,6 @@
                 const res = await fetch(`/api/reference-profiles/${id}/generate-formula`, { method: 'POST' });
                 const formula = await res.json();
 
-                // Switch to formula builder with this formula
                 currentFormula = {
                     name: formula.name,
                     description: formula.olfactive_description || '',
@@ -522,14 +867,13 @@
                 renderIngredients();
                 updatePyramid();
 
-                if (formula.unmatched.length > 0) {
-                    alert(`Formula generated with ${formula.fidelity_score}% fidelity.\n\n${formula.unmatched.length} compounds could not be matched:\n${formula.unmatched.map(u => '• ' + u.compound_name).join('\n')}`);
+                if (formula.unmatched?.length > 0) {
+                    showToast(`Formula generated with ${formula.fidelity_score}% fidelity (${formula.unmatched.length} unmatched)`, 'info');
                 } else {
-                    alert(`Formula generated with 100% fidelity! All compounds matched.`);
+                    showToast(`Formula generated with 100% fidelity!`, 'success');
                 }
             } catch (err) {
-                console.error('Error generating formula:', err);
-                alert('Error generating formula: ' + err.message);
+                showToast('Error generating formula', 'error');
             }
         }
 
@@ -538,11 +882,12 @@
             try {
                 const res = await fetch('/api/aromachemicals');
                 const data = await res.json();
-                chemicals = data.chemicals;
+                chemicals = data.chemicals || [];
                 renderChemicals(chemicals);
                 document.getElementById('chemCount').textContent = `${chemicals.length} chemicals`;
             } catch (err) {
                 console.error('Error loading chemicals:', err);
+                document.getElementById('chemCount').textContent = 'Error loading';
             }
         }
 
@@ -551,7 +896,7 @@
                 const res = await fetch('/api/odor-families');
                 const data = await res.json();
                 const select = document.getElementById('familyFilter');
-                data.families.forEach(f => {
+                (data.families || []).forEach(f => {
                     const opt = document.createElement('option');
                     opt.value = f;
                     opt.textContent = f.charAt(0).toUpperCase() + f.slice(1);
@@ -564,12 +909,16 @@
 
         function renderChemicals(chems) {
             const list = document.getElementById('chemicalList');
-            list.innerHTML = chems.map(c => `
+            if (!chems.length) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><div class="empty-hint">No chemicals found</div></div>';
+                return;
+            }
+            list.innerHTML = chems.slice(0, 100).map(c => `
                 <div class="chemical-item" onclick="selectChemicalForFormula('${c.cas_number}')">
                     <div>
                         <div class="chemical-name">${c.name}</div>
                         <div class="chemical-cas">CAS: ${c.cas_number}</div>
-                        <div class="chemical-odor">${c.odor_description || ''}</div>
+                        <div class="chemical-odor">${(c.odor_description || '').substring(0, 60)}</div>
                     </div>
                     <span class="volatility-badge volatility-${c.volatility || 'heart'}">${c.volatility || 'heart'}</span>
                 </div>
@@ -613,8 +962,8 @@
                     const res = await fetch(`/api/search/chemicals?q=${encodeURIComponent(query)}&limit=10`);
                     const data = await res.json();
 
-                    if (data.results.length === 0) {
-                        resultsDiv.innerHTML = '<div style="padding: 15px; color: #888;">No matches found</div>';
+                    if (!data.results?.length) {
+                        resultsDiv.innerHTML = '<div style="padding: 16px; color: var(--text-muted);">No matches found</div>';
                     } else {
                         resultsDiv.innerHTML = data.results.map(c => `
                             <div class="search-result-item" onclick="selectSearchResult('${c.cas_number}')">
@@ -657,7 +1006,6 @@
             }
         }
 
-        // Hide search results when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.inline-search')) {
                 document.getElementById('searchResults').classList.remove('show');
@@ -666,10 +1014,22 @@
 
         // ==================== Formula Building ====================
         function addIngredient() {
-            if (!selectedChemical) return alert('Search and select a chemical first');
+            if (!selectedChemical) {
+                showToast('Select a chemical first', 'error');
+                return;
+            }
 
             const percent = parseFloat(document.getElementById('ingredientPercent').value);
-            if (!percent || percent <= 0) return alert('Enter a valid percentage');
+            if (!percent || percent <= 0) {
+                showToast('Enter a valid percentage', 'error');
+                return;
+            }
+
+            // Check for duplicates
+            if (currentFormula.ingredients.some(i => i.cas_number === selectedChemical.cas_number)) {
+                showToast('Ingredient already added', 'error');
+                return;
+            }
 
             currentFormula.ingredients.push({
                 cas_number: selectedChemical.cas_number,
@@ -680,6 +1040,7 @@
 
             renderIngredients();
             updatePyramid();
+            showToast(`Added ${selectedChemical.name}`, 'success');
 
             // Reset
             document.getElementById('ingredientPercent').value = '';
@@ -697,22 +1058,26 @@
 
         function renderIngredients() {
             const list = document.getElementById('ingredientsList');
-            list.innerHTML = currentFormula.ingredients.map((ing, i) => `
-                <div class="ingredient-row">
-                    <span class="ingredient-name">${ing.name}</span>
-                    <input type="number" value="${ing.percentage}"
-                           onchange="updateIngredientPercent(${i}, this.value)" step="0.1">
-                    <span>%</span>
-                    <button class="remove-btn" onclick="removeIngredient(${i})">X</button>
-                </div>
-            `).join('');
+            if (!currentFormula.ingredients.length) {
+                list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-hint">No ingredients yet</div></div>';
+            } else {
+                list.innerHTML = currentFormula.ingredients.map((ing, i) => `
+                    <div class="ingredient-row">
+                        <span class="volatility-badge volatility-${ing.volatility}">${ing.volatility}</span>
+                        <span class="ingredient-name">${ing.name}</span>
+                        <input type="number" value="${ing.percentage}" onchange="updateIngredientPercent(${i}, this.value)" step="0.1">
+                        <span>%</span>
+                        <button class="remove-btn" onclick="removeIngredient(${i})">&#10005;</button>
+                    </div>
+                `).join('');
+            }
 
             const total = currentFormula.ingredients.reduce((sum, ing) => sum + ing.percentage, 0);
             document.getElementById('totalPercent').textContent = total.toFixed(1);
         }
 
         function updateIngredientPercent(index, value) {
-            currentFormula.ingredients[index].percentage = parseFloat(value);
+            currentFormula.ingredients[index].percentage = parseFloat(value) || 0;
             renderIngredients();
             updatePyramid();
         }
@@ -722,17 +1087,32 @@
             const heart = currentFormula.ingredients.filter(i => i.volatility === 'heart');
             const base = currentFormula.ingredients.filter(i => i.volatility === 'base');
 
-            document.getElementById('pyramidTop').innerHTML = top.map(i => `<div>${i.name} ${i.percentage}%</div>`).join('');
-            document.getElementById('pyramidHeart').innerHTML = heart.map(i => `<div>${i.name} ${i.percentage}%</div>`).join('');
-            document.getElementById('pyramidBase').innerHTML = base.map(i => `<div>${i.name} ${i.percentage}%</div>`).join('');
+            document.getElementById('pyramidTop').innerHTML = top.length ? top.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
+            document.getElementById('pyramidHeart').innerHTML = heart.length ? heart.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
+            document.getElementById('pyramidBase').innerHTML = base.length ? base.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
+        }
+
+        function clearFormula() {
+            currentFormula = { name: '', description: '', ingredients: [] };
+            document.getElementById('formulaName').value = '';
+            document.getElementById('formulaDescription').value = '';
+            renderIngredients();
+            updatePyramid();
+            showToast('Formula cleared', 'info');
         }
 
         async function saveFormula() {
             currentFormula.name = document.getElementById('formulaName').value;
             currentFormula.description = document.getElementById('formulaDescription').value;
 
-            if (!currentFormula.name) return alert('Enter formula name');
-            if (!currentFormula.ingredients.length) return alert('Add at least one ingredient');
+            if (!currentFormula.name) {
+                showToast('Enter formula name', 'error');
+                return;
+            }
+            if (!currentFormula.ingredients.length) {
+                showToast('Add at least one ingredient', 'error');
+                return;
+            }
 
             try {
                 const res = await fetch('/api/formulas', {
@@ -741,10 +1121,10 @@
                     body: JSON.stringify(currentFormula)
                 });
                 const data = await res.json();
-                alert(`Formula saved! ID: ${data.id}`);
+                showToast(`Formula saved! ID: ${data.id}`, 'success');
                 loadSavedFormulas();
             } catch (err) {
-                console.error('Error saving formula:', err);
+                showToast('Error saving formula', 'error');
             }
         }
 
@@ -753,13 +1133,15 @@
                 const res = await fetch('/api/formulas');
                 const data = await res.json();
                 const container = document.getElementById('savedFormulas');
-                if (data.formulas.length === 0) {
-                    container.innerHTML = '<div style="color: #666; padding: 10px;">No saved formulas</div>';
+                if (!data.formulas?.length) {
+                    container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-hint">No saved formulas</div></div>';
                 } else {
                     container.innerHTML = data.formulas.map(f => `
-                        <div style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer;" onclick="loadFormula('${f.id}')">
-                            <strong>${f.name}</strong>
-                            <div style="font-size: 0.8rem; color: #888;">${f.ingredients?.length || 0} ingredients</div>
+                        <div class="chemical-item" onclick="loadFormula('${f.id}')">
+                            <div>
+                                <div class="chemical-name">${f.name}</div>
+                                <div class="chemical-odor">${f.ingredients?.length || 0} ingredients</div>
+                            </div>
                         </div>
                     `).join('');
                 }
@@ -768,13 +1150,30 @@
             }
         }
 
-        function loadFormula(id) {
-            // TODO: Load formula into editor
-            console.log('Load formula:', id);
+        async function loadFormula(id) {
+            try {
+                const res = await fetch(`/api/formulas/${id}`);
+                const formula = await res.json();
+                currentFormula = {
+                    name: formula.name,
+                    description: formula.description || '',
+                    ingredients: formula.ingredients || []
+                };
+                document.getElementById('formulaName').value = currentFormula.name;
+                document.getElementById('formulaDescription').value = currentFormula.description;
+                renderIngredients();
+                updatePyramid();
+                showToast(`Loaded: ${formula.name}`, 'success');
+            } catch (err) {
+                showToast('Error loading formula', 'error');
+            }
         }
 
         function exportFormula() {
-            if (!currentFormula.ingredients.length) return alert('No ingredients to export');
+            if (!currentFormula.ingredients.length) {
+                showToast('No ingredients to export', 'error');
+                return;
+            }
 
             let csv = 'Name,CAS Number,Percentage,Volatility\n';
             currentFormula.ingredients.forEach(ing => {
@@ -782,9 +1181,10 @@
             });
 
             downloadFile(csv, `${currentFormula.name || 'formula'}.csv`, 'text/csv');
+            showToast('Formula exported', 'success');
         }
 
-        // ==================== GC-MS Upload & Processing ====================
+        // ==================== GC-MS Upload ====================
         function setupDragDrop() {
             const zone = document.getElementById('uploadZone');
 
@@ -814,13 +1214,12 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            // Show loading
             document.getElementById('uploadResult').style.display = 'block';
             document.getElementById('uploadStats').innerHTML = '<div class="loading"><div class="spinner"></div>Parsing file...</div>';
             document.getElementById('peakTableBody').innerHTML = '<tr><td colspan="5"><div class="loading"><div class="spinner"></div>Analyzing peaks...</div></td></tr>';
+            document.getElementById('matchControls').style.display = 'none';
 
             try {
-                // Upload and parse
                 const res = await fetch('/api/upload/gcms', {
                     method: 'POST',
                     body: formData
@@ -834,31 +1233,28 @@
                 const data = await res.json();
                 currentProfile = data;
 
-                // Update stats
                 document.getElementById('uploadStats').innerHTML = `
                     <div class="stat">
-                        <div class="value">${data.peak_count}</div>
-                        <div class="label">Peaks Detected</div>
+                        <div class="stat-value">${data.peak_count}</div>
+                        <div class="stat-label">Peaks Detected</div>
                     </div>
                     <div class="stat">
-                        <div class="value">${data.parser_used.replace('Parser', '')}</div>
-                        <div class="label">Format</div>
+                        <div class="stat-value">${data.parser_used.replace('Parser', '')}</div>
+                        <div class="stat-label">Format</div>
                     </div>
                 `;
 
-                // Render chromatogram
                 renderChromatogram(data.peaks);
-
-                // Now match peaks to chemicals
                 await matchPeaks(data.profile_id);
 
-                // Update workflow
                 document.getElementById('step1').classList.add('complete');
+                document.getElementById('step1').classList.remove('active');
                 document.getElementById('step2').classList.add('active');
 
+                showToast(`Parsed ${data.peak_count} peaks`, 'success');
             } catch (err) {
-                console.error('Upload error:', err);
-                document.getElementById('uploadStats').innerHTML = `<div style="color: #e74c3c;">Error: ${err.message}</div>`;
+                document.getElementById('uploadStats').innerHTML = `<div style="color: var(--danger); padding: 20px;">Error: ${err.message}</div>`;
+                showToast('Upload failed', 'error');
             }
         }
 
@@ -868,23 +1264,18 @@
                 const data = await res.json();
                 currentMatches = data;
 
-                // Update stats
                 document.getElementById('matchStats').textContent =
                     `${data.matched_peaks}/${data.total_peaks} matched (${data.fidelity_percent}%)`;
 
-                // Render peak table
                 renderPeakTable(data.matches);
-
-                // Show controls
-                document.getElementById('matchControls').style.display = 'block';
-
+                document.getElementById('matchControls').style.display = 'flex';
             } catch (err) {
                 console.error('Match error:', err);
             }
         }
 
         function renderChromatogram(peaks) {
-            if (!peaks || !peaks.length) return;
+            if (!peaks?.length) return;
 
             const trace = {
                 x: peaks.map(p => p.retention_time),
@@ -892,17 +1283,18 @@
                 type: 'scatter',
                 mode: 'lines+markers',
                 fill: 'tozeroy',
-                line: { color: '#f0a500' },
-                marker: { size: 4 }
+                line: { color: '#00bcd4', width: 2 },
+                marker: { size: 4 },
+                fillcolor: 'rgba(0,188,212,0.2)'
             };
 
             const layout = {
-                margin: { t: 30, r: 20, b: 40, l: 50 },
-                xaxis: { title: 'Retention Time (min)', color: '#888' },
-                yaxis: { title: 'Area %', color: '#888' },
+                margin: { t: 20, r: 20, b: 40, l: 50 },
+                xaxis: { title: 'Retention Time (min)', color: '#8b9aab', gridcolor: 'rgba(255,255,255,0.05)' },
+                yaxis: { title: 'Area %', color: '#8b9aab', gridcolor: 'rgba(255,255,255,0.05)' },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: '#e8e8e8' }
+                font: { color: '#e8eaed' }
             };
 
             Plotly.newPlot('chart', [trace], layout, { responsive: true });
@@ -918,7 +1310,7 @@
                      m.match_type === 'name_fuzzy' ? 'match-fuzzy' : 'match-partial')
                     : 'match-none';
 
-                const confColor = m.confidence > 0.8 ? '#27ae60' : m.confidence > 0.5 ? '#f39c12' : '#e74c3c';
+                const confColor = m.confidence > 0.8 ? 'var(--success)' : m.confidence > 0.5 ? 'var(--warning)' : 'var(--danger)';
 
                 return `
                     <tr>
@@ -942,7 +1334,10 @@
         }
 
         async function generateFormula() {
-            if (!currentProfile) return alert('Upload a GC-MS file first');
+            if (!currentProfile) {
+                showToast('Upload a GC-MS file first', 'error');
+                return;
+            }
 
             try {
                 const res = await fetch(`/api/profiles/${currentProfile.profile_id}/generate-formula?min_percent=0.5`, {
@@ -951,63 +1346,60 @@
                 const data = await res.json();
                 generatedFormulaData = data;
 
-                // Show formula section
                 document.getElementById('generatedFormula').style.display = 'block';
                 document.getElementById('formulaFidelity').textContent = `${data.fidelity_score}% fidelity`;
                 document.getElementById('generatedFormulaName').value = data.name;
 
-                // Render matched ingredients
                 document.getElementById('matchedIngredients').innerHTML = data.ingredients.map(ing => `
                     <div class="ingredient-row">
+                        <span class="volatility-badge volatility-${ing.volatility}">${ing.volatility}</span>
                         <span class="ingredient-name">${ing.name}</span>
                         <span>${ing.percentage}%</span>
-                        <span class="volatility-badge volatility-${ing.volatility}">${ing.volatility}</span>
                     </div>
                 `).join('');
 
-                // Render unmatched
-                if (data.unmatched.length > 0) {
+                if (data.unmatched?.length > 0) {
                     document.getElementById('unmatchedCompounds').innerHTML = data.unmatched.map(u => `
                         <div class="unmatched-item">
                             <div><strong>${u.compound_name}</strong> - ${u.area_percent.toFixed(1)}%</div>
-                            ${u.alternatives.length > 0 ? `
+                            ${u.alternatives?.length > 0 ? `
                                 <div class="alternatives-list">
-                                    <div style="font-size: 0.8rem; color: #888;">Suggestions:</div>
-                                    ${u.alternatives.map(a => `
-                                        <div class="alternative" onclick="addAlternative('${a.name}')">${a.name}</div>
-                                    `).join('')}
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Suggestions:</div>
+                                    ${u.alternatives.map(a => `<span class="alternative" onclick="addAlternative('${a.name}')">${a.name}</span>`).join('')}
                                 </div>
                             ` : ''}
                         </div>
                     `).join('');
                 } else {
-                    document.getElementById('unmatchedCompounds').innerHTML = '<div style="color: #27ae60;">All compounds matched!</div>';
+                    document.getElementById('unmatchedCompounds').innerHTML = '<div style="color: var(--success); padding: 20px;">All compounds matched!</div>';
                 }
 
-                // Update workflow
                 document.getElementById('step2').classList.add('complete');
+                document.getElementById('step2').classList.remove('active');
                 document.getElementById('step3').classList.add('active');
 
+                showToast(`Formula generated with ${data.fidelity_score}% fidelity`, 'success');
             } catch (err) {
-                console.error('Generate formula error:', err);
-                alert('Error generating formula: ' + err.message);
+                showToast('Error generating formula', 'error');
             }
         }
 
         function addAlternative(name) {
-            // TODO: Add alternative to formula
-            console.log('Add alternative:', name);
+            showToast(`Adding ${name} - feature coming soon`, 'info');
         }
 
         async function saveGeneratedFormula() {
             if (!generatedFormulaData) return;
 
             const name = document.getElementById('generatedFormulaName').value;
-            if (!name) return alert('Enter a formula name');
+            if (!name) {
+                showToast('Enter a formula name', 'error');
+                return;
+            }
 
             currentFormula = {
                 name: name,
-                description: `Reconstructed from GC-MS analysis`,
+                description: 'Reconstructed from GC-MS analysis',
                 ingredients: generatedFormulaData.ingredients.map(i => ({
                     cas_number: i.cas_number,
                     name: i.name,
@@ -1023,16 +1415,15 @@
                     body: JSON.stringify(currentFormula)
                 });
                 const data = await res.json();
-                alert(`Formula saved! ID: ${data.id}`);
+                showToast(`Formula saved! ID: ${data.id}`, 'success');
 
-                // Switch to formula builder to edit
                 showPanel('formulator');
                 document.getElementById('formulaName').value = name;
                 renderIngredients();
                 updatePyramid();
                 loadSavedFormulas();
             } catch (err) {
-                console.error('Save error:', err);
+                showToast('Error saving formula', 'error');
             }
         }
 
@@ -1045,6 +1436,7 @@
             });
 
             downloadFile(csv, 'gcms_matches.csv', 'text/csv');
+            showToast('Matches exported', 'success');
         }
 
         // ==================== Utilities ====================
