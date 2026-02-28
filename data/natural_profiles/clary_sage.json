@@ -1,0 +1,28 @@
+{
+  "name": "Clary Sage",
+  "botanical_name": "Salvia sclarea",
+  "origin": "France/Bulgaria",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC10049179 - Salvia sclarea Essential Oil Chemical Composition and Biological Activities; PMC6254371 - Chemical Composition and Biological Activities",
+  "notes": "Sclareol (diterpene) present in trace amounts in distilled oil but concentrated in concrete. Linalyl acetate content indicates quality.",
+  "peaks": [
+    {"compound_name": "Linalyl acetate", "cas_number": "115-95-7", "area_percent": 49.1, "range_min": 2.6, "range_max": 57.9},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 20.6, "range_min": 8.5, "range_max": 40.2},
+    {"compound_name": "(E)-Caryophyllene", "cas_number": "87-44-5", "area_percent": 5.1, "range_min": 3.0, "range_max": 7.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 4.9, "range_min": 3.5, "range_max": 6.0},
+    {"compound_name": "p-Cymene", "cas_number": "99-87-6", "area_percent": 4.9, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 4.5, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 4.4, "range_min": 1.6, "range_max": 5.0},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 3.3, "range_min": 2.0, "range_max": 4.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 3.0, "range_min": 2.0, "range_max": 4.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 1.5, "range_min": 1.0, "range_max": 2.0},
+    {"compound_name": "Sclareol", "cas_number": "515-03-7", "area_percent": 1.8, "range_min": 0.5, "range_max": 2.0}
+  ],
+  "key_markers": {
+    "115-95-7": "Linalyl acetate - sweet, floral, tea-like",
+    "78-70-6": "Linalool - fresh floral woody",
+    "515-03-7": "Sclareol - ambergris-like, warm (trace in distilled oil)"
+  },
+  "olfactive_description": "Herbaceous, sweet, wine-like with tea and tobacco undertones. Warm, relaxing, slightly euphoric character.",
+  "typical_use_level_percent": 4.0
+}

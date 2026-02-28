@@ -1,0 +1,27 @@
+{
+  "name": "Vetiver (Haitian)",
+  "botanical_name": "Vetiveria zizanioides",
+  "origin": "Haiti",
+  "extraction_method": "steam distillation",
+  "source_reference": "Literature review - peer-reviewed studies",
+  "notes": "Haitian vetiver is earthier, more rooty. Java/Bourbon vetiver is smoother. Composition is highly complex (150+ components).",
+  "peaks": [
+    {"compound_name": "Khusimol", "cas_number": "16223-63-5", "area_percent": 12.0, "range_min": 8.0, "range_max": 15.0},
+    {"compound_name": "Isovalencenol", "cas_number": "20489-45-4", "area_percent": 8.0, "range_min": 5.0, "range_max": 12.0},
+    {"compound_name": "beta-Vetivone", "cas_number": "18444-79-6", "area_percent": 6.5, "range_min": 4.0, "range_max": 9.0},
+    {"compound_name": "alpha-Vetivone", "cas_number": "15764-04-2", "area_percent": 5.5, "range_min": 3.0, "range_max": 8.0},
+    {"compound_name": "Vetiselinenol", "cas_number": "473-04-1", "area_percent": 4.5, "range_min": 2.0, "range_max": 7.0},
+    {"compound_name": "Khusinol", "cas_number": "17610-18-7", "area_percent": 4.0, "range_min": 2.0, "range_max": 6.0},
+    {"compound_name": "Vetiverol", "cas_number": "89-88-3", "area_percent": 3.5, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "Cyclocopacamphan-12-ol", "cas_number": "19903-73-2", "area_percent": 3.0, "range_min": 1.5, "range_max": 5.0},
+    {"compound_name": "beta-Vetivenene", "cas_number": "18444-65-0", "area_percent": 2.5, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "Nootkatone", "cas_number": "4674-50-4", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0}
+  ],
+  "key_markers": {
+    "16223-63-5": "Khusimol - woody vetiver character",
+    "18444-79-6": "beta-Vetivone - earthy smoky",
+    "15764-04-2": "alpha-Vetivone - grapefruit-woody"
+  },
+  "olfactive_description": "Deep, earthy, woody with smoky, rooty facets. Complex evolving dry-down. Classic masculine base note.",
+  "typical_use_level_percent": 3.0
+}

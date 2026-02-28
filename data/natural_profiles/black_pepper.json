@@ -1,0 +1,27 @@
+{
+  "name": "Black Pepper",
+  "botanical_name": "Piper nigrum",
+  "origin": "India/Madagascar",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC6930617 - Volatiles of Black Pepper Fruits (Piper nigrum L.); Clinical Phytoscience - Phytochemistry and therapeutic potential of black pepper essential oil",
+  "notes": "Monoterpene hydrocarbons dominant (59-80%). Composition varies by cultivar and geographic origin. 78 compounds identified in comprehensive studies.",
+  "peaks": [
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 25.0, "range_min": 8.7, "range_max": 70.4},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 17.0, "range_min": 2.9, "range_max": 38.4},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 12.0, "range_min": 0.7, "range_max": 25.6},
+    {"compound_name": "delta-3-Carene", "cas_number": "13466-78-9", "area_percent": 10.0, "range_min": 1.7, "range_max": 19.0},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 8.0, "range_min": 0.0, "range_max": 13.2},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 8.0, "range_min": 0.3, "range_max": 28.7},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 3.0, "range_min": 1.5, "range_max": 5.0},
+    {"compound_name": "alpha-Phellandrene", "cas_number": "99-83-2", "area_percent": 2.5, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "alpha-Copaene", "cas_number": "3856-25-5", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.5},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0}
+  ],
+  "key_markers": {
+    "87-44-5": "beta-Caryophyllene - spicy, woody, clove-like (CB2 agonist)",
+    "5989-27-5": "Limonene - fresh citrus",
+    "80-56-8": "alpha-Pinene - fresh, pine"
+  },
+  "olfactive_description": "Warm, spicy, peppery with fresh terpenic top notes. Dry, woody undertones. Stimulating and invigorating.",
+  "typical_use_level_percent": 2.0
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Bergamot (FCF)",
+  "botanical_name": "Citrus bergamia",
+  "origin": "Italy (Calabria)",
+  "extraction_method": "cold pressed (bergaptene-free)",
+  "source_reference": "Literature review - ISO 3520, pharmacopeia standards",
+  "notes": "FCF (furocoumarin-free) version for fragrance use. Regular bergamot contains photosensitizing bergaptene.",
+  "peaks": [
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 38.0, "range_min": 32.0, "range_max": 45.0},
+    {"compound_name": "Linalyl acetate", "cas_number": "115-95-7", "area_percent": 28.0, "range_min": 22.0, "range_max": 36.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 11.0, "range_min": 8.0, "range_max": 15.0},
+    {"compound_name": "gamma-Terpinene", "cas_number": "99-85-4", "area_percent": 6.5, "range_min": 4.0, "range_max": 9.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 5.0, "range_min": 3.0, "range_max": 8.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 1.5, "range_min": 0.5, "range_max": 2.5},
+    {"compound_name": "Neryl acetate", "cas_number": "141-12-8", "area_percent": 0.8, "range_min": 0.3, "range_max": 1.5},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 0.5, "range_min": 0.2, "range_max": 1.0},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 1.2, "range_min": 0.5, "range_max": 2.0},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 1.0, "range_min": 0.5, "range_max": 2.0}
+  ],
+  "key_markers": {
+    "5989-27-5": "Limonene - fresh citrus",
+    "115-95-7": "Linalyl acetate - bergamot's distinctive sweet fresh",
+    "78-70-6": "Linalool - fresh floral"
+  },
+  "olfactive_description": "Fresh, sweet citrus with floral-herbaceous undertones. Less sharp than lemon, more complex. Classic Earl Grey tea note.",
+  "typical_use_level_percent": 5.0
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Jasmine Absolute (Grandiflorum)",
+  "botanical_name": "Jasminum grandiflorum",
+  "origin": "Egypt/India",
+  "extraction_method": "solvent extraction (absolute)",
+  "source_reference": "Literature review - multiple peer-reviewed sources",
+  "notes": "J. grandiflorum absolute differs from J. sambac. Absolute vs concrete have different profiles.",
+  "peaks": [
+    {"compound_name": "Benzyl acetate", "cas_number": "140-11-4", "area_percent": 23.0, "range_min": 18.0, "range_max": 28.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 8.0, "range_min": 5.0, "range_max": 12.0},
+    {"compound_name": "Benzyl benzoate", "cas_number": "120-51-4", "area_percent": 7.0, "range_min": 4.0, "range_max": 10.0},
+    {"compound_name": "Phytol", "cas_number": "150-86-7", "area_percent": 6.5, "range_min": 4.0, "range_max": 9.0},
+    {"compound_name": "Indole", "cas_number": "120-72-9", "area_percent": 2.5, "range_min": 1.5, "range_max": 4.0},
+    {"compound_name": "cis-Jasmone", "cas_number": "488-10-8", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.5},
+    {"compound_name": "Methyl jasmonate", "cas_number": "1211-29-6", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Eugenol", "cas_number": "97-53-0", "area_percent": 3.0, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "Geranyl linalool", "cas_number": "1113-21-9", "area_percent": 4.0, "range_min": 2.0, "range_max": 6.0},
+    {"compound_name": "Farnesol", "cas_number": "4602-84-0", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.0},
+    {"compound_name": "Methyl anthranilate", "cas_number": "134-20-3", "area_percent": 1.0, "range_min": 0.3, "range_max": 2.0},
+    {"compound_name": "Benzyl alcohol", "cas_number": "100-51-6", "area_percent": 3.5, "range_min": 2.0, "range_max": 5.0}
+  ],
+  "key_markers": {
+    "140-11-4": "Benzyl acetate - sweet fruity floral",
+    "120-72-9": "Indole - animalic fecal note (essential at low %)",
+    "488-10-8": "cis-Jasmone - distinctive jasmine"
+  },
+  "olfactive_description": "Rich, opulent white floral with fruity, animalic, and narcotic facets. Green tea-like top.",
+  "typical_use_level_percent": 1.0
+}

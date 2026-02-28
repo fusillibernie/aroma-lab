@@ -1,0 +1,28 @@
+{
+  "name": "Ylang Ylang Complete",
+  "botanical_name": "Cananga odorata",
+  "origin": "Madagascar/Comoros",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC9231162 - Effect of Ylang-Ylang Essential Oil; PMC11510078 - Chemical Composition, Antioxidant, Antibacterial Properties",
+  "notes": "Complete grade combines all distillation fractions. Extra grade contains highest concentration of esters. Composition varies significantly by grade (Extra, I, II, III, Complete).",
+  "peaks": [
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 19.5, "range_min": 7.0, "range_max": 24.0},
+    {"compound_name": "Benzyl acetate", "cas_number": "140-11-4", "area_percent": 18.2, "range_min": 5.5, "range_max": 17.5},
+    {"compound_name": "Benzyl benzoate", "cas_number": "120-51-4", "area_percent": 11.4, "range_min": 5.0, "range_max": 12.0},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 9.5, "range_min": 2.5, "range_max": 14.0},
+    {"compound_name": "Methyl benzoate", "cas_number": "93-58-3", "area_percent": 8.0, "range_min": 4.0, "range_max": 9.0},
+    {"compound_name": "p-Cresyl methyl ether", "cas_number": "104-93-8", "area_percent": 7.4, "range_min": 5.0, "range_max": 16.0},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 5.4, "range_min": 4.0, "range_max": 9.0},
+    {"compound_name": "Germacrene D", "cas_number": "23986-74-5", "area_percent": 4.6, "range_min": 2.9, "range_max": 15.3},
+    {"compound_name": "Benzyl salicylate", "cas_number": "118-58-1", "area_percent": 4.5, "range_min": 3.0, "range_max": 6.0},
+    {"compound_name": "alpha-Farnesene", "cas_number": "502-61-4", "area_percent": 3.0, "range_min": 3.0, "range_max": 25.0},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 2.5, "range_min": 1.5, "range_max": 4.0}
+  ],
+  "key_markers": {
+    "78-70-6": "Linalool - fresh floral woody",
+    "140-11-4": "Benzyl acetate - sweet jasmine-like floral",
+    "104-93-8": "p-Cresyl methyl ether - characteristic ylang note"
+  },
+  "olfactive_description": "Intensely sweet, exotic floral with creamy, jasmine-like and slightly spicy undertones. Narcotic and heady character.",
+  "typical_use_level_percent": 3.0
+}

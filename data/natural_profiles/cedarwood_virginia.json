@@ -1,0 +1,23 @@
+{
+  "name": "Cedarwood (Virginia)",
+  "botanical_name": "Juniperus virginiana",
+  "origin": "USA",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMID 29326032 - The anxiolytic effect of Juniperus virginiana essential oil; NTP Technical Report (CASRN 8000-27-9)",
+  "notes": "Virginia cedarwood differs from Atlas (Cedrus atlantica) and Texas (Juniperus mexicana). Sesquiterpenes are the dominant compounds. True cedars (Cedrus) contain himachalenes and atlantones.",
+  "peaks": [
+    {"compound_name": "Cedrol", "cas_number": "77-53-2", "area_percent": 24.6, "range_min": 16.0, "range_max": 25.0},
+    {"compound_name": "alpha-Cedrene", "cas_number": "469-61-4", "area_percent": 28.1, "range_min": 20.0, "range_max": 35.0},
+    {"compound_name": "Thujopsene", "cas_number": "470-40-6", "area_percent": 17.7, "range_min": 10.0, "range_max": 25.0},
+    {"compound_name": "beta-Cedrene", "cas_number": "546-28-1", "area_percent": 7.8, "range_min": 4.0, "range_max": 11.5},
+    {"compound_name": "Cuparene", "cas_number": "16982-00-6", "area_percent": 4.0, "range_min": 1.5, "range_max": 7.0},
+    {"compound_name": "Widdrol", "cas_number": "6892-80-4", "area_percent": 3.5, "range_min": 2.0, "range_max": 8.5}
+  ],
+  "key_markers": {
+    "77-53-2": "Cedrol - woody, dry, pencil shavings character",
+    "469-61-4": "alpha-Cedrene - woody, cedar heart",
+    "470-40-6": "Thujopsene - sweet woody"
+  },
+  "olfactive_description": "Dry, woody, pencil-shavings character with subtle sweet balsamic undertones. Warm and comforting.",
+  "typical_use_level_percent": 10.0
+}

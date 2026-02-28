@@ -1,0 +1,30 @@
+{
+  "name": "Rose Otto (Bulgarian)",
+  "botanical_name": "Rosa damascena",
+  "origin": "Bulgaria",
+  "extraction_method": "steam distillation",
+  "source_reference": "Literature review - multiple peer-reviewed sources",
+  "notes": "Bulgarian rose otto is considered the gold standard. Composition varies by origin and harvest.",
+  "peaks": [
+    {"compound_name": "Citronellol", "cas_number": "106-22-9", "area_percent": 30.5, "range_min": 28.0, "range_max": 34.0},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 20.5, "range_min": 18.0, "range_max": 23.0},
+    {"compound_name": "Nonadecane", "cas_number": "629-92-5", "area_percent": 9.0, "range_min": 7.0, "range_max": 12.0},
+    {"compound_name": "Heneicosane", "cas_number": "629-94-7", "area_percent": 8.5, "range_min": 6.0, "range_max": 10.0},
+    {"compound_name": "Phenylethyl alcohol", "cas_number": "60-12-8", "area_percent": 4.0, "range_min": 2.5, "range_max": 5.5},
+    {"compound_name": "Nerol", "cas_number": "106-25-2", "area_percent": 3.5, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 2.5, "range_min": 1.5, "range_max": 4.0},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.5},
+    {"compound_name": "Citronellyl acetate", "cas_number": "150-84-5", "area_percent": 1.8, "range_min": 1.0, "range_max": 3.0},
+    {"compound_name": "Eugenol", "cas_number": "97-53-0", "area_percent": 1.5, "range_min": 0.8, "range_max": 2.5},
+    {"compound_name": "Methyleugenol", "cas_number": "93-15-2", "area_percent": 1.2, "range_min": 0.5, "range_max": 2.0},
+    {"compound_name": "Rose oxide", "cas_number": "16409-43-1", "area_percent": 0.5, "range_min": 0.2, "range_max": 1.0}
+  ],
+  "key_markers": {
+    "106-22-9": "Citronellol - primary character",
+    "106-24-1": "Geraniol - floral rose",
+    "60-12-8": "Phenylethyl alcohol - honey rose",
+    "16409-43-1": "Rose oxide - distinctive green fresh facet"
+  },
+  "olfactive_description": "Rich, deep floral with honey and spicy undertones. Green fresh top, full rose heart, warm balsamic dry-down.",
+  "typical_use_level_percent": 0.5
+}

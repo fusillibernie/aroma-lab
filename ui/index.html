@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aroma Lab - Fragrance Formulation</title>
+    <title>Aroma Lab - GC-MS Reconstruction</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,15 +13,14 @@
             color: #e8e8e8;
             min-height: 100vh;
         }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 20px 0; border-bottom: 1px solid #333;
         }
         h1 { font-size: 2rem; color: #f0a500; }
-        .tabs {
-            display: flex; gap: 10px; margin: 20px 0;
-        }
+        .subtitle { color: #888; font-size: 0.9rem; }
+        .tabs { display: flex; gap: 10px; margin: 20px 0; }
         .tab {
             padding: 12px 24px; background: #2a2a4a; border: none;
             color: #aaa; cursor: pointer; border-radius: 8px 8px 0 0;
@@ -32,11 +31,13 @@
         .panel { display: none; background: #252540; border-radius: 0 8px 8px 8px; padding: 20px; }
         .panel.active { display: block; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
         .card {
             background: #1e1e38; border-radius: 12px; padding: 20px;
             border: 1px solid #333;
         }
-        .card h3 { color: #f0a500; margin-bottom: 15px; }
+        .card h3 { color: #f0a500; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .card h3 .badge { font-size: 0.75rem; background: #444; padding: 4px 8px; border-radius: 12px; }
         input, select, textarea {
             width: 100%; padding: 10px; border-radius: 6px;
             border: 1px solid #444; background: #2a2a4a;
@@ -49,17 +50,20 @@
             font-weight: bold; transition: all 0.3s;
         }
         button:hover { background: #ffb733; transform: translateY(-2px); }
-        .chemical-list {
-            max-height: 400px; overflow-y: auto;
-        }
+        button.secondary { background: #3498db; color: #fff; }
+        button.success { background: #27ae60; color: #fff; }
+        button.danger { background: #e74c3c; color: #fff; }
+        button:disabled { background: #555; cursor: not-allowed; transform: none; }
+        .chemical-list { max-height: 400px; overflow-y: auto; }
         .chemical-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px; border-bottom: 1px solid #333;
-            transition: background 0.2s;
+            transition: background 0.2s; cursor: pointer;
         }
         .chemical-item:hover { background: #2a2a4a; }
         .chemical-name { font-weight: bold; color: #fff; }
         .chemical-odor { font-size: 0.85rem; color: #888; margin-top: 4px; }
+        .chemical-cas { font-size: 0.75rem; color: #666; }
         .volatility-badge {
             padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;
             text-transform: uppercase;
@@ -90,43 +94,228 @@
             transition: all 0.3s;
         }
         .upload-zone:hover { border-color: #f0a500; background: rgba(240, 165, 0, 0.1); }
+        .upload-zone.dragover { border-color: #27ae60; background: rgba(39, 174, 96, 0.2); }
         .chromatogram { margin-top: 20px; }
-        #chart { width: 100%; height: 300px; }
+        #chart { width: 100%; height: 250px; }
         .search-filters { display: flex; gap: 10px; margin-bottom: 15px; }
         .search-filters input, .search-filters select { width: auto; flex: 1; }
+
+        /* Inline Search */
+        .inline-search {
+            position: relative;
+        }
+        .inline-search-results {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #1e1e38; border: 1px solid #444;
+            border-radius: 6px; max-height: 300px; overflow-y: auto;
+            z-index: 100; display: none;
+        }
+        .inline-search-results.show { display: block; }
+        .search-result-item {
+            padding: 10px; border-bottom: 1px solid #333;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .search-result-item:hover { background: #2a2a4a; }
+        .search-result-item .info { flex: 1; }
+        .search-result-item .name { font-weight: bold; }
+        .search-result-item .odor { font-size: 0.8rem; color: #888; }
+
+        /* Peak Table */
+        .peak-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .peak-table th, .peak-table td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        .peak-table th { background: #1a1a2e; position: sticky; top: 0; }
+        .peak-table tr:hover { background: #2a2a4a; }
+        .peak-table-container { max-height: 400px; overflow-y: auto; }
+
+        /* Match Status */
+        .match-status {
+            padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;
+        }
+        .match-exact { background: #27ae60; color: #fff; }
+        .match-fuzzy { background: #f39c12; color: #fff; }
+        .match-partial { background: #e67e22; color: #fff; }
+        .match-none { background: #e74c3c; color: #fff; }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            width: 60px; height: 8px; background: #333;
+            border-radius: 4px; overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%; border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex; gap: 20px; padding: 15px;
+            background: #1a1a2e; border-radius: 8px; margin-bottom: 15px;
+        }
+        .stat { text-align: center; }
+        .stat .value { font-size: 1.5rem; font-weight: bold; color: #f0a500; }
+        .stat .label { font-size: 0.8rem; color: #888; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #333;
+            border-top-color: #f0a500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Workflow Steps */
+        .workflow-steps {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .workflow-step {
+            flex: 1; padding: 15px; text-align: center;
+            background: #2a2a4a; border-radius: 8px;
+            border: 2px solid transparent;
+        }
+        .workflow-step.active { border-color: #f0a500; }
+        .workflow-step.complete { background: #27ae60; }
+        .workflow-step .step-num {
+            width: 30px; height: 30px; line-height: 30px;
+            background: #444; border-radius: 50%;
+            display: inline-block; margin-bottom: 5px;
+        }
+        .workflow-step.active .step-num { background: #f0a500; color: #1a1a2e; }
+        .workflow-step.complete .step-num { background: #fff; color: #27ae60; }
+
+        /* Unmatched Panel */
+        .unmatched-item {
+            padding: 10px; background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c; border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .alternatives-list {
+            margin-top: 8px; padding-left: 15px;
+        }
+        .alternative {
+            padding: 4px 8px; background: #2a2a4a;
+            border-radius: 4px; margin: 4px 0;
+            font-size: 0.85rem; cursor: pointer;
+        }
+        .alternative:hover { background: #3a3a5a; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Aroma Lab</h1>
-            <span>Fragrance Formulation Studio</span>
+            <div>
+                <h1>Aroma Lab</h1>
+                <span class="subtitle">Fragrance Reconstruction from GC-MS Analysis</span>
+            </div>
+            <span id="chemCount">Loading...</span>
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="showPanel('database')">Chemical Database</button>
+            <button class="tab active" onclick="showPanel('gcms')">GC-MS Reconstruction</button>
+            <button class="tab" onclick="showPanel('references')">Reference Naturals</button>
             <button class="tab" onclick="showPanel('formulator')">Formula Builder</button>
-            <button class="tab" onclick="showPanel('gcms')">GC-MS Analysis</button>
-            <button class="tab" onclick="showPanel('compare')">Compare</button>
+            <button class="tab" onclick="showPanel('database')">Chemical Database</button>
         </div>
 
-        <!-- Database Panel -->
-        <div id="database" class="panel active">
-            <div class="card">
-                <h3>Aromachemical Database</h3>
-                <div class="search-filters">
-                    <input type="text" id="search" placeholder="Search chemicals..." oninput="filterChemicals()">
-                    <select id="familyFilter" onchange="filterChemicals()">
-                        <option value="">All Families</option>
-                    </select>
-                    <select id="volatilityFilter" onchange="filterChemicals()">
-                        <option value="">All Notes</option>
-                        <option value="top">Top Notes</option>
-                        <option value="heart">Heart Notes</option>
-                        <option value="base">Base Notes</option>
-                    </select>
+        <!-- GC-MS Reconstruction Panel (PRIMARY) -->
+        <div id="gcms" class="panel active">
+            <div class="workflow-steps">
+                <div class="workflow-step active" id="step1">
+                    <div class="step-num">1</div>
+                    <div>Upload GC-MS</div>
                 </div>
-                <div class="chemical-list" id="chemicalList"></div>
+                <div class="workflow-step" id="step2">
+                    <div class="step-num">2</div>
+                    <div>Review Matches</div>
+                </div>
+                <div class="workflow-step" id="step3">
+                    <div class="step-num">3</div>
+                    <div>Generate Formula</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Upload GC-MS Data</h3>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="gcmsFile" accept=".csv,.txt,.msp,.nist" style="display: none;" onchange="uploadGCMS(this)">
+                        <p style="font-size: 1.2rem; margin-bottom: 10px;">Drop file or click to upload</p>
+                        <p style="color: #666;">Supports: NIST MS Search, Shimadzu, Agilent, CSV</p>
+                    </div>
+
+                    <div id="uploadResult" style="display: none; margin-top: 20px;">
+                        <div class="stats-bar" id="uploadStats"></div>
+                        <div class="chromatogram">
+                            <div id="chart"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Peak Matches <span class="badge" id="matchStats">-</span></h3>
+                    <div id="matchControls" style="display: none; margin-bottom: 15px;">
+                        <button class="success" onclick="generateFormula()">Generate Formula</button>
+                        <button class="secondary" onclick="exportMatches()">Export CSV</button>
+                    </div>
+                    <div class="peak-table-container">
+                        <table class="peak-table" id="peakTable">
+                            <thead>
+                                <tr>
+                                    <th>RT</th>
+                                    <th>Area%</th>
+                                    <th>Detected</th>
+                                    <th>Match</th>
+                                    <th>Conf</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peakTableBody">
+                                <tr><td colspan="5" style="text-align: center; color: #666;">Upload a file to see peaks</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Formula Section -->
+            <div class="card" id="generatedFormula" style="display: none; margin-top: 20px;">
+                <h3>Generated Formula <span class="badge" id="formulaFidelity">-</span></h3>
+                <div class="grid">
+                    <div>
+                        <h4 style="margin-bottom: 10px;">Matched Ingredients</h4>
+                        <div id="matchedIngredients"></div>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 10px;">Unmatched Compounds</h4>
+                        <div id="unmatchedCompounds"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <input type="text" id="generatedFormulaName" placeholder="Formula Name">
+                    <button onclick="saveGeneratedFormula()">Save to Formulas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Naturals Panel -->
+        <div id="references" class="panel">
+            <div class="grid">
+                <div class="card">
+                    <h3>Reference Natural Profiles</h3>
+                    <p style="color: #888; margin-bottom: 15px;">
+                        Pre-loaded GC-MS compositions from peer-reviewed literature and public databases.
+                        Select a natural to generate a reconstruction formula.
+                    </p>
+                    <div id="referenceList" class="chemical-list" style="max-height: 500px;"></div>
+                </div>
+                <div class="card">
+                    <h3 id="selectedRefName">Select a Natural</h3>
+                    <div id="referenceDetail" style="color: #888;">
+                        Choose a reference profile from the list to see its composition and generate a formula.
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -136,15 +325,21 @@
                 <div class="card">
                     <h3>Create Formula</h3>
                     <input type="text" id="formulaName" placeholder="Formula Name">
-                    <textarea id="formulaDescription" placeholder="Description" rows="3"></textarea>
+                    <textarea id="formulaDescription" placeholder="Description" rows="2"></textarea>
 
                     <h4 style="margin: 15px 0 10px;">Add Ingredient</h4>
-                    <select id="ingredientSelect">
-                        <option value="">Select aromachemical...</option>
-                    </select>
-                    <div style="display: flex; gap: 10px;">
+                    <div class="inline-search">
+                        <input type="text" id="ingredientSearch" placeholder="Search chemicals by name, odor, or CAS..."
+                               oninput="searchChemicals(this.value)" autocomplete="off">
+                        <div class="inline-search-results" id="searchResults"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <input type="number" id="ingredientPercent" placeholder="%" step="0.1" min="0" max="100" style="width: 100px;">
-                        <button onclick="addIngredient()">Add</button>
+                        <button onclick="addIngredient()" id="addIngredientBtn" disabled>Add Selected</button>
+                    </div>
+                    <div id="selectedChemical" style="margin-top: 10px; padding: 10px; background: #2a2a4a; border-radius: 6px; display: none;">
+                        <strong id="selectedName">-</strong>
+                        <div id="selectedOdor" style="font-size: 0.85rem; color: #888;"></div>
                     </div>
 
                     <div class="formula-ingredients" id="formulaIngredients">
@@ -157,7 +352,7 @@
 
                     <div style="margin-top: 20px; display: flex; gap: 10px;">
                         <button onclick="saveFormula()">Save Formula</button>
-                        <button onclick="exportFormula()" style="background: #3498db;">Export CSV</button>
+                        <button onclick="exportFormula()" class="secondary">Export CSV</button>
                     </div>
                 </div>
 
@@ -177,59 +372,52 @@
                             <div id="pyramidBase"></div>
                         </div>
                     </div>
+
+                    <h4 style="margin-top: 20px;">Saved Formulas</h4>
+                    <div id="savedFormulas" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- GC-MS Panel -->
-        <div id="gcms" class="panel">
+        <!-- Database Panel -->
+        <div id="database" class="panel">
             <div class="card">
-                <h3>GC-MS Data Analysis</h3>
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('gcmsFile').click()">
-                    <input type="file" id="gcmsFile" accept=".csv,.txt" style="display: none;" onchange="uploadGCMS(this)">
-                    <p>Click or drag to upload GC-MS data file</p>
-                    <p style="color: #666; font-size: 0.9rem;">Supports CSV format</p>
-                </div>
-                <div class="chromatogram">
-                    <div id="chart"></div>
-                </div>
-                <div id="peakTable" style="margin-top: 20px;"></div>
-            </div>
-        </div>
-
-        <!-- Compare Panel -->
-        <div id="compare" class="panel">
-            <div class="grid">
-                <div class="card">
-                    <h3>Natural Reference</h3>
-                    <select id="naturalSelect">
-                        <option value="">Select natural material...</option>
-                        <option value="rose">Rose Otto</option>
-                        <option value="jasmine">Jasmine Absolute</option>
-                        <option value="sandalwood">Sandalwood</option>
-                        <option value="vetiver">Vetiver</option>
+                <h3>Aromachemical Database</h3>
+                <div class="search-filters">
+                    <input type="text" id="search" placeholder="Search chemicals..." oninput="filterChemicals()">
+                    <select id="familyFilter" onchange="filterChemicals()">
+                        <option value="">All Families</option>
                     </select>
-                    <div id="naturalComposition"></div>
-                </div>
-                <div class="card">
-                    <h3>Your Recreation</h3>
-                    <select id="formulaSelect">
-                        <option value="">Select your formula...</option>
+                    <select id="volatilityFilter" onchange="filterChemicals()">
+                        <option value="">All Notes</option>
+                        <option value="top">Top Notes</option>
+                        <option value="heart">Heart Notes</option>
+                        <option value="base">Base Notes</option>
                     </select>
-                    <div id="recreationComposition"></div>
                 </div>
+                <div class="chemical-list" id="chemicalList"></div>
             </div>
         </div>
     </div>
 
     <script>
+        // State
         let chemicals = [];
         let currentFormula = { name: '', description: '', ingredients: [] };
+        let selectedChemical = null;
+        let currentProfile = null;
+        let currentMatches = null;
+        let generatedFormulaData = null;
+        let searchTimeout = null;
+        let referenceProfiles = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await loadChemicals();
             await loadFamilies();
+            await loadSavedFormulas();
+            await loadReferenceProfiles();
+            setupDragDrop();
         });
 
         function showPanel(panelId) {
@@ -239,13 +427,120 @@
             event.target.classList.add('active');
         }
 
+        // ==================== Reference Profiles ====================
+        async function loadReferenceProfiles() {
+            try {
+                const res = await fetch('/api/reference-profiles');
+                const data = await res.json();
+                referenceProfiles = data.profiles;
+                renderReferenceList();
+            } catch (err) {
+                console.error('Error loading reference profiles:', err);
+            }
+        }
+
+        function renderReferenceList() {
+            const list = document.getElementById('referenceList');
+            list.innerHTML = referenceProfiles.map(p => `
+                <div class="chemical-item" onclick="selectReference('${p.id}')">
+                    <div>
+                        <div class="chemical-name">${p.name}</div>
+                        <div class="chemical-odor">${p.botanical_name || ''}</div>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">${p.olfactive_description?.substring(0, 60) || ''}...</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: #f0a500;">${p.peak_count}</span>
+                        <div style="font-size: 0.7rem; color: #666;">compounds</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectReference(id) {
+            try {
+                const res = await fetch(`/api/reference-profiles/${id}`);
+                const profile = await res.json();
+                renderReferenceDetail(profile);
+            } catch (err) {
+                console.error('Error loading reference:', err);
+            }
+        }
+
+        function renderReferenceDetail(profile) {
+            document.getElementById('selectedRefName').textContent = profile.name;
+            document.getElementById('referenceDetail').innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Botanical:</strong> ${profile.botanical_name || '-'}<br>
+                    <strong>Origin:</strong> ${profile.origin || '-'}<br>
+                    <strong>Extraction:</strong> ${profile.extraction_method || '-'}<br>
+                    <strong>Source:</strong> ${profile.source_reference || '-'}
+                </div>
+                <div style="margin-bottom: 15px; padding: 10px; background: #2a2a4a; border-radius: 6px;">
+                    ${profile.olfactive_description || ''}
+                </div>
+                <h4 style="margin-bottom: 10px;">Composition (${profile.peaks?.length || 0} compounds)</h4>
+                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+                    ${(profile.peaks || []).map(p => `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333;">
+                            <span>${p.compound_name}</span>
+                            <span style="color: #f0a500;">${p.area_percent}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+                ${profile.key_markers ? `
+                    <h4 style="margin-bottom: 10px;">Key Character Markers</h4>
+                    <div style="margin-bottom: 15px;">
+                        ${Object.entries(profile.key_markers).map(([cas, desc]) => `
+                            <div style="font-size: 0.85rem; padding: 4px 0; color: #888;">• ${desc}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                <button class="success" onclick="generateFromReference('${profile.id}')">Generate Formula</button>
+            `;
+        }
+
+        async function generateFromReference(id) {
+            try {
+                const res = await fetch(`/api/reference-profiles/${id}/generate-formula`, { method: 'POST' });
+                const formula = await res.json();
+
+                // Switch to formula builder with this formula
+                currentFormula = {
+                    name: formula.name,
+                    description: formula.olfactive_description || '',
+                    ingredients: formula.ingredients.map(i => ({
+                        cas_number: i.cas_number,
+                        name: i.name,
+                        percentage: i.percentage,
+                        volatility: i.volatility
+                    }))
+                };
+
+                showPanel('formulator');
+                document.getElementById('formulaName').value = formula.name;
+                document.getElementById('formulaDescription').value = formula.olfactive_description || '';
+                renderIngredients();
+                updatePyramid();
+
+                if (formula.unmatched.length > 0) {
+                    alert(`Formula generated with ${formula.fidelity_score}% fidelity.\n\n${formula.unmatched.length} compounds could not be matched:\n${formula.unmatched.map(u => '• ' + u.compound_name).join('\n')}`);
+                } else {
+                    alert(`Formula generated with 100% fidelity! All compounds matched.`);
+                }
+            } catch (err) {
+                console.error('Error generating formula:', err);
+                alert('Error generating formula: ' + err.message);
+            }
+        }
+
+        // ==================== Chemical Loading ====================
         async function loadChemicals() {
             try {
                 const res = await fetch('/api/aromachemicals');
                 const data = await res.json();
                 chemicals = data.chemicals;
                 renderChemicals(chemicals);
-                populateIngredientSelect();
+                document.getElementById('chemCount').textContent = `${chemicals.length} chemicals`;
             } catch (err) {
                 console.error('Error loading chemicals:', err);
             }
@@ -270,9 +565,10 @@
         function renderChemicals(chems) {
             const list = document.getElementById('chemicalList');
             list.innerHTML = chems.map(c => `
-                <div class="chemical-item" onclick="selectChemical('${c.cas_number}')">
+                <div class="chemical-item" onclick="selectChemicalForFormula('${c.cas_number}')">
                     <div>
                         <div class="chemical-name">${c.name}</div>
+                        <div class="chemical-cas">CAS: ${c.cas_number}</div>
                         <div class="chemical-odor">${c.odor_description || ''}</div>
                     </div>
                     <span class="volatility-badge volatility-${c.volatility || 'heart'}">${c.volatility || 'heart'}</span>
@@ -289,7 +585,8 @@
             if (search) {
                 filtered = filtered.filter(c =>
                     c.name.toLowerCase().includes(search) ||
-                    (c.odor_description || '').toLowerCase().includes(search)
+                    (c.odor_description || '').toLowerCase().includes(search) ||
+                    (c.cas_number || '').includes(search)
                 );
             }
             if (family) {
@@ -301,41 +598,95 @@
             renderChemicals(filtered);
         }
 
-        function populateIngredientSelect() {
-            const select = document.getElementById('ingredientSelect');
-            select.innerHTML = '<option value="">Select aromachemical...</option>';
-            chemicals.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.cas_number;
-                opt.textContent = `${c.name} (${c.volatility || 'heart'})`;
-                select.appendChild(opt);
-            });
+        // ==================== Inline Search ====================
+        async function searchChemicals(query) {
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (query.length < 2) {
+                resultsDiv.classList.remove('show');
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/search/chemicals?q=${encodeURIComponent(query)}&limit=10`);
+                    const data = await res.json();
+
+                    if (data.results.length === 0) {
+                        resultsDiv.innerHTML = '<div style="padding: 15px; color: #888;">No matches found</div>';
+                    } else {
+                        resultsDiv.innerHTML = data.results.map(c => `
+                            <div class="search-result-item" onclick="selectSearchResult('${c.cas_number}')">
+                                <div class="info">
+                                    <div class="name">${c.name}</div>
+                                    <div class="odor">${(c.odor_description || '').substring(0, 50)}...</div>
+                                </div>
+                                <span class="volatility-badge volatility-${c.volatility || 'heart'}">${c.volatility || 'heart'}</span>
+                            </div>
+                        `).join('');
+                    }
+                    resultsDiv.classList.add('show');
+                } catch (err) {
+                    console.error('Search error:', err);
+                }
+            }, 200);
         }
 
-        function selectChemical(cas) {
+        function selectSearchResult(cas) {
+            selectedChemical = chemicals.find(c => c.cas_number === cas);
+            if (selectedChemical) {
+                document.getElementById('selectedChemical').style.display = 'block';
+                document.getElementById('selectedName').textContent = selectedChemical.name;
+                document.getElementById('selectedOdor').textContent = selectedChemical.odor_description || '';
+                document.getElementById('addIngredientBtn').disabled = false;
+                document.getElementById('ingredientSearch').value = selectedChemical.name;
+            }
+            document.getElementById('searchResults').classList.remove('show');
+        }
+
+        function selectChemicalForFormula(cas) {
             showPanel('formulator');
-            document.getElementById('ingredientSelect').value = cas;
+            selectedChemical = chemicals.find(c => c.cas_number === cas);
+            if (selectedChemical) {
+                document.getElementById('selectedChemical').style.display = 'block';
+                document.getElementById('selectedName').textContent = selectedChemical.name;
+                document.getElementById('selectedOdor').textContent = selectedChemical.odor_description || '';
+                document.getElementById('addIngredientBtn').disabled = false;
+                document.getElementById('ingredientSearch').value = selectedChemical.name;
+            }
         }
 
+        // Hide search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.inline-search')) {
+                document.getElementById('searchResults').classList.remove('show');
+            }
+        });
+
+        // ==================== Formula Building ====================
         function addIngredient() {
-            const cas = document.getElementById('ingredientSelect').value;
+            if (!selectedChemical) return alert('Search and select a chemical first');
+
             const percent = parseFloat(document.getElementById('ingredientPercent').value);
-
-            if (!cas || !percent) return alert('Select chemical and enter percentage');
-
-            const chem = chemicals.find(c => c.cas_number === cas);
-            if (!chem) return;
+            if (!percent || percent <= 0) return alert('Enter a valid percentage');
 
             currentFormula.ingredients.push({
-                cas_number: cas,
-                name: chem.name,
+                cas_number: selectedChemical.cas_number,
+                name: selectedChemical.name,
                 percentage: percent,
-                volatility: chem.volatility || 'heart'
+                volatility: selectedChemical.volatility || 'heart'
             });
 
             renderIngredients();
             updatePyramid();
+
+            // Reset
             document.getElementById('ingredientPercent').value = '';
+            document.getElementById('ingredientSearch').value = '';
+            document.getElementById('selectedChemical').style.display = 'none';
+            document.getElementById('addIngredientBtn').disabled = true;
+            selectedChemical = null;
         }
 
         function removeIngredient(index) {
@@ -381,6 +732,7 @@
             currentFormula.description = document.getElementById('formulaDescription').value;
 
             if (!currentFormula.name) return alert('Enter formula name');
+            if (!currentFormula.ingredients.length) return alert('Add at least one ingredient');
 
             try {
                 const res = await fetch('/api/formulas', {
@@ -390,9 +742,35 @@
                 });
                 const data = await res.json();
                 alert(`Formula saved! ID: ${data.id}`);
+                loadSavedFormulas();
             } catch (err) {
                 console.error('Error saving formula:', err);
             }
+        }
+
+        async function loadSavedFormulas() {
+            try {
+                const res = await fetch('/api/formulas');
+                const data = await res.json();
+                const container = document.getElementById('savedFormulas');
+                if (data.formulas.length === 0) {
+                    container.innerHTML = '<div style="color: #666; padding: 10px;">No saved formulas</div>';
+                } else {
+                    container.innerHTML = data.formulas.map(f => `
+                        <div style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer;" onclick="loadFormula('${f.id}')">
+                            <strong>${f.name}</strong>
+                            <div style="font-size: 0.8rem; color: #888;">${f.ingredients?.length || 0} ingredients</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Error loading formulas:', err);
+            }
+        }
+
+        function loadFormula(id) {
+            // TODO: Load formula into editor
+            console.log('Load formula:', id);
         }
 
         function exportFormula() {
@@ -403,31 +781,105 @@
                 csv += `"${ing.name}","${ing.cas_number}",${ing.percentage},${ing.volatility}\n`;
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${currentFormula.name || 'formula'}.csv`;
-            a.click();
+            downloadFile(csv, `${currentFormula.name || 'formula'}.csv`, 'text/csv');
+        }
+
+        // ==================== GC-MS Upload & Processing ====================
+        function setupDragDrop() {
+            const zone = document.getElementById('uploadZone');
+
+            zone.onclick = () => document.getElementById('gcmsFile').click();
+
+            zone.ondragover = (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            };
+
+            zone.ondragleave = () => zone.classList.remove('dragover');
+
+            zone.ondrop = async (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) await processGCMSFile(file);
+            };
         }
 
         async function uploadGCMS(input) {
             const file = input.files[0];
-            if (!file) return;
+            if (file) await processGCMSFile(file);
+        }
 
+        async function processGCMSFile(file) {
             const formData = new FormData();
             formData.append('file', file);
 
+            // Show loading
+            document.getElementById('uploadResult').style.display = 'block';
+            document.getElementById('uploadStats').innerHTML = '<div class="loading"><div class="spinner"></div>Parsing file...</div>';
+            document.getElementById('peakTableBody').innerHTML = '<tr><td colspan="5"><div class="loading"><div class="spinner"></div>Analyzing peaks...</div></td></tr>';
+
             try {
+                // Upload and parse
                 const res = await fetch('/api/upload/gcms', {
                     method: 'POST',
                     body: formData
                 });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Upload failed');
+                }
+
                 const data = await res.json();
+                currentProfile = data;
+
+                // Update stats
+                document.getElementById('uploadStats').innerHTML = `
+                    <div class="stat">
+                        <div class="value">${data.peak_count}</div>
+                        <div class="label">Peaks Detected</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value">${data.parser_used.replace('Parser', '')}</div>
+                        <div class="label">Format</div>
+                    </div>
+                `;
+
+                // Render chromatogram
                 renderChromatogram(data.peaks);
-                renderPeakTable(data.peaks);
+
+                // Now match peaks to chemicals
+                await matchPeaks(data.profile_id);
+
+                // Update workflow
+                document.getElementById('step1').classList.add('complete');
+                document.getElementById('step2').classList.add('active');
+
             } catch (err) {
-                console.error('Error uploading GC-MS:', err);
+                console.error('Upload error:', err);
+                document.getElementById('uploadStats').innerHTML = `<div style="color: #e74c3c;">Error: ${err.message}</div>`;
+            }
+        }
+
+        async function matchPeaks(profileId) {
+            try {
+                const res = await fetch(`/api/profiles/${profileId}/match`, { method: 'POST' });
+                const data = await res.json();
+                currentMatches = data;
+
+                // Update stats
+                document.getElementById('matchStats').textContent =
+                    `${data.matched_peaks}/${data.total_peaks} matched (${data.fidelity_percent}%)`;
+
+                // Render peak table
+                renderPeakTable(data.matches);
+
+                // Show controls
+                document.getElementById('matchControls').style.display = 'block';
+
+            } catch (err) {
+                console.error('Match error:', err);
             }
         }
 
@@ -436,49 +888,174 @@
 
             const trace = {
                 x: peaks.map(p => p.retention_time),
-                y: peaks.map(p => p.area),
+                y: peaks.map(p => p.area_percent),
                 type: 'scatter',
-                mode: 'lines',
+                mode: 'lines+markers',
                 fill: 'tozeroy',
-                line: { color: '#f0a500' }
+                line: { color: '#f0a500' },
+                marker: { size: 4 }
             };
 
             const layout = {
-                title: 'Chromatogram',
-                xaxis: { title: 'Retention Time (min)' },
-                yaxis: { title: 'Intensity' },
+                margin: { t: 30, r: 20, b: 40, l: 50 },
+                xaxis: { title: 'Retention Time (min)', color: '#888' },
+                yaxis: { title: 'Area %', color: '#888' },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: '#e8e8e8' }
             };
 
-            Plotly.newPlot('chart', [trace], layout);
+            Plotly.newPlot('chart', [trace], layout, { responsive: true });
         }
 
-        function renderPeakTable(peaks) {
-            if (!peaks || !peaks.length) return;
+        function renderPeakTable(matches) {
+            const tbody = document.getElementById('peakTableBody');
 
-            const table = document.getElementById('peakTable');
-            table.innerHTML = `
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #444;">
-                            <th style="padding: 10px; text-align: left;">RT (min)</th>
-                            <th style="padding: 10px; text-align: left;">Area</th>
-                            <th style="padding: 10px; text-align: left;">Compound</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${peaks.map(p => `
-                            <tr style="border-bottom: 1px solid #333;">
-                                <td style="padding: 8px;">${p.retention_time.toFixed(2)}</td>
-                                <td style="padding: 8px;">${p.area.toLocaleString()}</td>
-                                <td style="padding: 8px;">${p.compound || '-'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+            tbody.innerHTML = matches.map(m => {
+                const matchClass = m.matched ?
+                    (m.match_type === 'cas_exact' ? 'match-exact' :
+                     m.match_type === 'name_exact' ? 'match-exact' :
+                     m.match_type === 'name_fuzzy' ? 'match-fuzzy' : 'match-partial')
+                    : 'match-none';
+
+                const confColor = m.confidence > 0.8 ? '#27ae60' : m.confidence > 0.5 ? '#f39c12' : '#e74c3c';
+
+                return `
+                    <tr>
+                        <td>${(m.retention_time || 0).toFixed(2)}</td>
+                        <td>${(m.area_percent || 0).toFixed(1)}%</td>
+                        <td>${m.compound_name || '-'}</td>
+                        <td>
+                            ${m.matched ?
+                                `<span class="match-status ${matchClass}">${m.matched_chemical?.name || '-'}</span>` :
+                                `<span class="match-status match-none">No match</span>`
+                            }
+                        </td>
+                        <td>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: ${m.confidence * 100}%; background: ${confColor};"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function generateFormula() {
+            if (!currentProfile) return alert('Upload a GC-MS file first');
+
+            try {
+                const res = await fetch(`/api/profiles/${currentProfile.profile_id}/generate-formula?min_percent=0.5`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                generatedFormulaData = data;
+
+                // Show formula section
+                document.getElementById('generatedFormula').style.display = 'block';
+                document.getElementById('formulaFidelity').textContent = `${data.fidelity_score}% fidelity`;
+                document.getElementById('generatedFormulaName').value = data.name;
+
+                // Render matched ingredients
+                document.getElementById('matchedIngredients').innerHTML = data.ingredients.map(ing => `
+                    <div class="ingredient-row">
+                        <span class="ingredient-name">${ing.name}</span>
+                        <span>${ing.percentage}%</span>
+                        <span class="volatility-badge volatility-${ing.volatility}">${ing.volatility}</span>
+                    </div>
+                `).join('');
+
+                // Render unmatched
+                if (data.unmatched.length > 0) {
+                    document.getElementById('unmatchedCompounds').innerHTML = data.unmatched.map(u => `
+                        <div class="unmatched-item">
+                            <div><strong>${u.compound_name}</strong> - ${u.area_percent.toFixed(1)}%</div>
+                            ${u.alternatives.length > 0 ? `
+                                <div class="alternatives-list">
+                                    <div style="font-size: 0.8rem; color: #888;">Suggestions:</div>
+                                    ${u.alternatives.map(a => `
+                                        <div class="alternative" onclick="addAlternative('${a.name}')">${a.name}</div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('unmatchedCompounds').innerHTML = '<div style="color: #27ae60;">All compounds matched!</div>';
+                }
+
+                // Update workflow
+                document.getElementById('step2').classList.add('complete');
+                document.getElementById('step3').classList.add('active');
+
+            } catch (err) {
+                console.error('Generate formula error:', err);
+                alert('Error generating formula: ' + err.message);
+            }
+        }
+
+        function addAlternative(name) {
+            // TODO: Add alternative to formula
+            console.log('Add alternative:', name);
+        }
+
+        async function saveGeneratedFormula() {
+            if (!generatedFormulaData) return;
+
+            const name = document.getElementById('generatedFormulaName').value;
+            if (!name) return alert('Enter a formula name');
+
+            currentFormula = {
+                name: name,
+                description: `Reconstructed from GC-MS analysis`,
+                ingredients: generatedFormulaData.ingredients.map(i => ({
+                    cas_number: i.cas_number,
+                    name: i.name,
+                    percentage: i.percentage,
+                    volatility: i.volatility
+                }))
+            };
+
+            try {
+                const res = await fetch('/api/formulas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentFormula)
+                });
+                const data = await res.json();
+                alert(`Formula saved! ID: ${data.id}`);
+
+                // Switch to formula builder to edit
+                showPanel('formulator');
+                document.getElementById('formulaName').value = name;
+                renderIngredients();
+                updatePyramid();
+                loadSavedFormulas();
+            } catch (err) {
+                console.error('Save error:', err);
+            }
+        }
+
+        function exportMatches() {
+            if (!currentMatches) return;
+
+            let csv = 'RT,Area%,Detected Compound,CAS,Matched Chemical,Match Type,Confidence\n';
+            currentMatches.matches.forEach(m => {
+                csv += `${m.retention_time},${m.area_percent},"${m.compound_name || ''}","${m.cas_number || ''}","${m.matched_chemical?.name || ''}",${m.match_type},${m.confidence}\n`;
+            });
+
+            downloadFile(csv, 'gcms_matches.csv', 'text/csv');
+        }
+
+        // ==================== Utilities ====================
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>

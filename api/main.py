@@ -1,31 +1,41 @@
 """
-Aroma Lab API - FastAPI backend for fragrance formulation
+Aroma Lab API - FastAPI backend for fragrance formulation and GC-MS reconstruction
 """
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from pathlib import Path
 import json
+import re
 from typing import Optional
 import sys
+import uuid
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from models import Aromachemical, Formula, FormulaIngredient
+from models import Aromachemical, Formula, FormulaIngredient, GCMSPeak, NaturalProfile, Volatility, OdorFamily
+from parsers.csv_parser import CSVParser
+from parsers.agilent_parser import AgilentParser
+from parsers.shimadzu_parser import ShimadzuParser
+from parsers.nist_parser import NISTParser
 
 app = FastAPI(
     title="Aroma Lab",
-    description="Fragrance formulation and GC-MS analysis tool",
-    version="1.0.0"
+    description="Fragrance reconstruction from GC-MS analysis",
+    version="2.0.0"
 )
 
 # Data paths
 DATA_DIR = Path(__file__).parent.parent / "data"
 AROMACHEMICALS_DIR = DATA_DIR / "aromachemicals"
 
-# In-memory storage for formulas (could be replaced with database)
+# In-memory storage
 formulas_db: dict[str, dict] = {}
+profiles_db: dict[str, dict] = {}  # Store parsed GC-MS profiles
+
+# Available parsers
+PARSERS = [NISTParser(), ShimadzuParser(), AgilentParser(), CSVParser()]
 
 
 def load_aromachemicals() -> list[dict]:
@@ -41,6 +51,159 @@ def load_aromachemicals() -> list[dict]:
             except (json.JSONDecodeError, IOError):
                 continue
     return chemicals
+
+
+def build_chemical_index(chemicals: list[dict]) -> dict:
+    """Build search indices for chemicals."""
+    by_cas = {}
+    by_name = {}
+    by_name_fuzzy = {}  # lowercase, normalized
+
+    for c in chemicals:
+        cas = c.get("cas_number", "")
+        name = c.get("name", "")
+
+        if cas:
+            by_cas[cas] = c
+        if name:
+            by_name[name] = c
+            # Fuzzy: lowercase, remove common suffixes
+            normalized = name.lower().strip()
+            by_name_fuzzy[normalized] = c
+            # Also index without common prefixes like d-, l-, dl-, etc.
+            for prefix in ["d-", "l-", "dl-", "(+)-", "(-)-", "(±)-", "alpha-", "beta-", "gamma-"]:
+                if normalized.startswith(prefix):
+                    by_name_fuzzy[normalized[len(prefix):]] = c
+
+    return {"by_cas": by_cas, "by_name": by_name, "by_name_fuzzy": by_name_fuzzy}
+
+
+def match_peak_to_chemical(peak: dict, index: dict) -> dict:
+    """Match a GC-MS peak to a chemical in the database."""
+    result = {
+        "peak": peak,
+        "matched": False,
+        "chemical": None,
+        "confidence": 0.0,
+        "match_type": "none",
+        "alternatives": []
+    }
+
+    # 1. Try exact CAS match
+    cas = peak.get("cas_number") or peak.get("cas")
+    if cas and cas in index["by_cas"]:
+        result["matched"] = True
+        result["chemical"] = index["by_cas"][cas]
+        result["confidence"] = 1.0
+        result["match_type"] = "cas_exact"
+        return result
+
+    # 2. Try exact name match
+    name = peak.get("compound_name") or peak.get("compound") or peak.get("name")
+    if name and name in index["by_name"]:
+        result["matched"] = True
+        result["chemical"] = index["by_name"][name]
+        result["confidence"] = 0.95
+        result["match_type"] = "name_exact"
+        return result
+
+    # 3. Try fuzzy name match
+    if name:
+        name_lower = name.lower().strip()
+        # Remove trailing annotations like "(CAS xxx)", numbers, etc.
+        name_clean = re.sub(r'\s*\([^)]*\)\s*$', '', name_lower)
+        name_clean = re.sub(r'\s*#\d+\s*$', '', name_clean)
+        name_clean = re.sub(r',.*$', '', name_clean)  # Take first part before comma
+        name_clean = name_clean.strip()
+
+        if name_clean in index["by_name_fuzzy"]:
+            result["matched"] = True
+            result["chemical"] = index["by_name_fuzzy"][name_clean]
+            result["confidence"] = 0.85
+            result["match_type"] = "name_fuzzy"
+            return result
+
+        # 4. Try partial match (name contains)
+        for db_name, chem in index["by_name_fuzzy"].items():
+            if name_clean in db_name or db_name in name_clean:
+                if len(name_clean) > 4 and len(db_name) > 4:  # Avoid short matches
+                    result["matched"] = True
+                    result["chemical"] = chem
+                    result["confidence"] = 0.70
+                    result["match_type"] = "name_partial"
+                    return result
+
+    # 5. Find potential alternatives based on odor description keywords
+    if name:
+        keywords = set(name.lower().split())
+        for chem in index["by_cas"].values():
+            odor = (chem.get("odor_description") or "").lower()
+            if any(kw in odor for kw in keywords if len(kw) > 4):
+                result["alternatives"].append({
+                    "chemical": chem,
+                    "reason": "similar odor keywords"
+                })
+                if len(result["alternatives"]) >= 3:
+                    break
+
+    return result
+
+
+def parse_gcms_file(content: bytes, filename: str) -> dict:
+    """Parse GC-MS file using appropriate parser."""
+    import tempfile
+    import os
+
+    # Write to temp file for parsers
+    suffix = Path(filename).suffix
+    with tempfile.NamedTemporaryFile(mode='wb', suffix=suffix, delete=False) as f:
+        f.write(content)
+        temp_path = Path(f.name)
+
+    try:
+        # Find appropriate parser
+        for parser in PARSERS:
+            if parser.can_parse(temp_path):
+                profile = parser.parse(temp_path)
+                return {
+                    "success": True,
+                    "parser": parser.__class__.__name__,
+                    "name": profile.name,
+                    "peaks": [
+                        {
+                            "retention_time": p.retention_time,
+                            "area_percent": p.area_percent,
+                            "compound_name": p.compound_name,
+                            "cas_number": p.cas_number,
+                            "match_quality": p.match_quality,
+                        }
+                        for p in profile.peaks
+                    ],
+                    "peak_count": len(profile.peaks),
+                    "notes": profile.notes,
+                }
+
+        return {"success": False, "error": "No parser could handle this file format"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        os.unlink(temp_path)
+
+
+def load_reference_profiles() -> list[dict]:
+    """Load reference natural profiles from JSON files."""
+    profiles = []
+    profiles_dir = DATA_DIR / "natural_profiles"
+    if profiles_dir.exists():
+        for json_file in profiles_dir.glob("*.json"):
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    data["id"] = json_file.stem
+                    profiles.append(data)
+            except (json.JSONDecodeError, IOError):
+                continue
+    return profiles
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -97,6 +260,110 @@ async def get_odor_families():
     return {"families": sorted(list(families))}
 
 
+# ==================== Reference Natural Profiles ====================
+
+@app.get("/api/reference-profiles")
+async def list_reference_profiles():
+    """List all reference natural profiles available for reconstruction.
+
+    These are well-documented natural materials with known GC-MS compositions.
+    """
+    profiles = load_reference_profiles()
+    return {
+        "profiles": [
+            {
+                "id": p.get("id"),
+                "name": p.get("name"),
+                "botanical_name": p.get("botanical_name"),
+                "origin": p.get("origin"),
+                "peak_count": len(p.get("peaks", [])),
+                "olfactive_description": p.get("olfactive_description", ""),
+            }
+            for p in profiles
+        ],
+        "count": len(profiles)
+    }
+
+
+@app.get("/api/reference-profiles/{profile_id}")
+async def get_reference_profile(profile_id: str):
+    """Get a specific reference profile with full composition."""
+    profiles = load_reference_profiles()
+    for p in profiles:
+        if p.get("id") == profile_id:
+            return p
+    raise HTTPException(status_code=404, detail="Reference profile not found")
+
+
+@app.post("/api/reference-profiles/{profile_id}/generate-formula")
+async def generate_formula_from_reference(
+    profile_id: str,
+    name: str = Query(default=None, description="Formula name"),
+):
+    """Generate a formula from a reference natural profile.
+
+    This creates a formula using the known composition of the natural material,
+    matching to available aromachemicals in your database.
+    """
+    profiles = load_reference_profiles()
+    profile = next((p for p in profiles if p.get("id") == profile_id), None)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Reference profile not found")
+
+    chemicals = load_aromachemicals()
+    index = build_chemical_index(chemicals)
+
+    formula_name = name or f"{profile['name']} Recreation"
+    ingredients = []
+    unmatched = []
+    total_matched = 0.0
+    total_unmatched = 0.0
+
+    for peak in profile.get("peaks", []):
+        area = peak.get("area_percent", 0)
+        match = match_peak_to_chemical(peak, index)
+
+        if match["matched"]:
+            chem = match["chemical"]
+            ingredients.append({
+                "cas_number": chem.get("cas_number"),
+                "name": chem.get("name"),
+                "percentage": round(area, 2),
+                "volatility": chem.get("volatility", "heart"),
+                "confidence": match["confidence"],
+                "match_type": match["match_type"],
+                "original_compound": peak.get("compound_name"),
+                "range_min": peak.get("range_min"),
+                "range_max": peak.get("range_max"),
+                "odor_description": chem.get("odor_description", ""),
+            })
+            total_matched += area
+        else:
+            unmatched.append({
+                "compound_name": peak.get("compound_name", "Unknown"),
+                "cas_number": peak.get("cas_number"),
+                "area_percent": area,
+            })
+            total_unmatched += area
+
+    formula_id = str(uuid.uuid4())[:8]
+    formula = {
+        "id": formula_id,
+        "name": formula_name,
+        "source_reference_id": profile_id,
+        "source_type": "reference_profile",
+        "ingredients": ingredients,
+        "unmatched": unmatched,
+        "total_percentage": round(total_matched, 2),
+        "fidelity_score": round(total_matched / (total_matched + total_unmatched) * 100, 1) if (total_matched + total_unmatched) > 0 else 0,
+        "key_markers": profile.get("key_markers", {}),
+        "olfactive_description": profile.get("olfactive_description"),
+    }
+
+    formulas_db[formula_id] = formula
+    return formula
+
+
 @app.post("/api/formulas")
 async def create_formula(formula: dict):
     """Create a new formula."""
@@ -142,29 +409,229 @@ async def delete_formula(formula_id: str):
 
 @app.post("/api/upload/gcms")
 async def upload_gcms(file: UploadFile = File(...)):
-    """Upload and parse a GC-MS data file."""
+    """Upload and parse a GC-MS data file using specialized parsers.
+
+    Supports: NIST MS Search, Shimadzu LabSolutions, Agilent ChemStation, CSV
+    """
     content = await file.read()
     filename = file.filename or "unknown"
 
-    # Determine file type and parse
-    if filename.endswith(".csv"):
-        # Parse CSV GC-MS data
-        lines = content.decode("utf-8").splitlines()
-        peaks = []
-        for i, line in enumerate(lines[1:], start=1):  # Skip header
-            parts = line.split(",")
-            if len(parts) >= 2:
-                try:
-                    peaks.append({
-                        "retention_time": float(parts[0]),
-                        "area": float(parts[1]) if len(parts) > 1 else 0,
-                        "compound": parts[2] if len(parts) > 2 else f"Peak {i}"
-                    })
-                except ValueError:
-                    continue
-        return {"filename": filename, "peaks": peaks, "peak_count": len(peaks)}
+    # Parse using appropriate parser
+    result = parse_gcms_file(content, filename)
 
-    return {"filename": filename, "message": "File uploaded, parsing not implemented for this format"}
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to parse file"))
+
+    # Store the profile for later use
+    profile_id = str(uuid.uuid4())[:8]
+    profiles_db[profile_id] = {
+        "id": profile_id,
+        "filename": filename,
+        "parser": result["parser"],
+        "name": result["name"],
+        "peaks": result["peaks"],
+        "peak_count": result["peak_count"],
+        "notes": result.get("notes", ""),
+    }
+
+    return {
+        "profile_id": profile_id,
+        "filename": filename,
+        "parser_used": result["parser"],
+        "peaks": result["peaks"],
+        "peak_count": result["peak_count"],
+    }
+
+
+@app.get("/api/profiles")
+async def list_profiles():
+    """List all parsed GC-MS profiles."""
+    return {"profiles": list(profiles_db.values())}
+
+
+@app.get("/api/profiles/{profile_id}")
+async def get_profile(profile_id: str):
+    """Get a specific GC-MS profile."""
+    if profile_id not in profiles_db:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profiles_db[profile_id]
+
+
+@app.post("/api/profiles/{profile_id}/match")
+async def match_profile_peaks(profile_id: str):
+    """Match all peaks in a profile to chemicals in the database."""
+    if profile_id not in profiles_db:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    profile = profiles_db[profile_id]
+    chemicals = load_aromachemicals()
+    index = build_chemical_index(chemicals)
+
+    matches = []
+    matched_percent = 0.0
+    total_percent = 0.0
+
+    for peak in profile["peaks"]:
+        area = peak.get("area_percent", 0) or 0
+        total_percent += area
+
+        match = match_peak_to_chemical(peak, index)
+        if match["matched"]:
+            matched_percent += area
+
+        matches.append({
+            "retention_time": peak.get("retention_time"),
+            "area_percent": area,
+            "compound_name": peak.get("compound_name"),
+            "cas_number": peak.get("cas_number"),
+            "matched": match["matched"],
+            "matched_chemical": match["chemical"],
+            "confidence": match["confidence"],
+            "match_type": match["match_type"],
+            "alternatives": match["alternatives"][:3] if match["alternatives"] else [],
+        })
+
+    fidelity = (matched_percent / total_percent * 100) if total_percent > 0 else 0
+
+    return {
+        "profile_id": profile_id,
+        "matches": matches,
+        "total_peaks": len(matches),
+        "matched_peaks": sum(1 for m in matches if m["matched"]),
+        "fidelity_percent": round(fidelity, 1),
+        "matched_area_percent": round(matched_percent, 1),
+        "total_area_percent": round(total_percent, 1),
+    }
+
+
+@app.post("/api/profiles/{profile_id}/generate-formula")
+async def generate_formula_from_profile(
+    profile_id: str,
+    name: str = Query(default=None, description="Formula name"),
+    min_percent: float = Query(default=0.5, description="Minimum area% to include"),
+):
+    """Generate a formula from a GC-MS profile by matching peaks to available chemicals."""
+    if profile_id not in profiles_db:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    profile = profiles_db[profile_id]
+    chemicals = load_aromachemicals()
+    index = build_chemical_index(chemicals)
+
+    formula_name = name or f"{profile['name']} Recreation"
+    ingredients = []
+    unmatched = []
+    total_matched = 0.0
+    total_unmatched = 0.0
+
+    # Sort peaks by area descending
+    sorted_peaks = sorted(
+        profile["peaks"],
+        key=lambda p: p.get("area_percent", 0) or 0,
+        reverse=True
+    )
+
+    for peak in sorted_peaks:
+        area = peak.get("area_percent", 0) or 0
+        if area < min_percent:
+            continue
+
+        match = match_peak_to_chemical(peak, index)
+
+        if match["matched"]:
+            chem = match["chemical"]
+            ingredients.append({
+                "cas_number": chem.get("cas_number"),
+                "name": chem.get("name"),
+                "percentage": round(area, 2),
+                "volatility": chem.get("volatility", "heart"),
+                "confidence": match["confidence"],
+                "match_type": match["match_type"],
+                "original_compound": peak.get("compound_name"),
+                "odor_description": chem.get("odor_description", ""),
+            })
+            total_matched += area
+        else:
+            unmatched.append({
+                "compound_name": peak.get("compound_name", "Unknown"),
+                "cas_number": peak.get("cas_number"),
+                "area_percent": area,
+                "retention_time": peak.get("retention_time"),
+                "alternatives": [
+                    {"name": a["chemical"].get("name"), "reason": a["reason"]}
+                    for a in match["alternatives"][:3]
+                ]
+            })
+            total_unmatched += area
+
+    # Create and store formula
+    formula_id = str(uuid.uuid4())[:8]
+    formula = {
+        "id": formula_id,
+        "name": formula_name,
+        "source_profile_id": profile_id,
+        "ingredients": ingredients,
+        "unmatched": unmatched,
+        "total_percentage": round(total_matched, 2),
+        "fidelity_score": round(total_matched / (total_matched + total_unmatched) * 100, 1) if (total_matched + total_unmatched) > 0 else 0,
+        "unmatched_percentage": round(total_unmatched, 2),
+    }
+
+    formulas_db[formula_id] = formula
+
+    return formula
+
+
+@app.get("/api/search/chemicals")
+async def search_chemicals_inline(
+    q: str = Query(..., min_length=2, description="Search query"),
+    limit: int = Query(default=10, le=50),
+):
+    """Quick inline search for chemicals - for use in formula builder.
+
+    Searches by name, CAS, odor description, and odor families.
+    """
+    chemicals = load_aromachemicals()
+    q_lower = q.lower()
+
+    results = []
+    for c in chemicals:
+        score = 0
+        name = c.get("name", "").lower()
+        cas = c.get("cas_number", "").lower()
+        odor = c.get("odor_description", "").lower()
+        families = " ".join(c.get("odor_families", [])).lower()
+
+        # Exact name match
+        if q_lower == name:
+            score = 100
+        # Name starts with
+        elif name.startswith(q_lower):
+            score = 90
+        # Name contains
+        elif q_lower in name:
+            score = 70
+        # CAS match
+        elif q_lower in cas:
+            score = 80
+        # Odor description contains
+        elif q_lower in odor:
+            score = 50
+        # Odor family match
+        elif q_lower in families:
+            score = 40
+
+        if score > 0:
+            results.append({"chemical": c, "score": score})
+
+    # Sort by score descending
+    results.sort(key=lambda x: x["score"], reverse=True)
+
+    return {
+        "query": q,
+        "results": [r["chemical"] for r in results[:limit]],
+        "count": len(results[:limit]),
+    }
 
 
 @app.get("/api/pyramid/{formula_id}")

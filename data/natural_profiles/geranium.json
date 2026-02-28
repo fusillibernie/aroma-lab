@@ -1,0 +1,26 @@
+{
+  "name": "Geranium (Rose Geranium)",
+  "botanical_name": "Pelargonium graveolens",
+  "origin": "Egypt/Reunion",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC10778218 - An In-Depth Study on the Chemical Composition of Pelargonium graveolens; PMC3539951 - Phytochemical composition and antimicrobial activities",
+  "notes": "Egyptian (Bourbon type from Reunion) and Chinese types have distinct profiles. Citronellol/geraniol ratio varies by origin and season.",
+  "peaks": [
+    {"compound_name": "Citronellol", "cas_number": "106-22-9", "area_percent": 32.8, "range_min": 20.0, "range_max": 48.4},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 23.6, "range_min": 9.7, "range_max": 26.8},
+    {"compound_name": "Citronellyl formate", "cas_number": "105-85-1", "area_percent": 12.1, "range_min": 9.7, "range_max": 13.2},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 10.5, "range_min": 5.6, "range_max": 10.5},
+    {"compound_name": "Geranyl formate", "cas_number": "105-86-2", "area_percent": 6.2, "range_min": 4.0, "range_max": 8.0},
+    {"compound_name": "Menthone", "cas_number": "89-80-5", "area_percent": 6.0, "range_min": 3.0, "range_max": 8.0},
+    {"compound_name": "10-epi-gamma-Eudesmol", "cas_number": "15051-81-7", "area_percent": 7.9, "range_min": 5.0, "range_max": 10.0},
+    {"compound_name": "Isomenthone", "cas_number": "491-07-6", "area_percent": 4.5, "range_min": 3.0, "range_max": 7.0},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 2.0, "range_min": 1.0, "range_max": 4.0}
+  ],
+  "key_markers": {
+    "106-22-9": "Citronellol - fresh rosy, slightly citrus",
+    "106-24-1": "Geraniol - sweet, floral rose",
+    "105-85-1": "Citronellyl formate - fresh fruity-floral"
+  },
+  "olfactive_description": "Fresh, green, rosy-floral with minty-herbaceous undertones. Bright and uplifting character.",
+  "typical_use_level_percent": 4.0
+}

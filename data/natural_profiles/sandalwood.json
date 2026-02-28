@@ -1,0 +1,24 @@
+{
+  "name": "Sandalwood (East Indian)",
+  "botanical_name": "Santalum album",
+  "origin": "India (Mysore)",
+  "extraction_method": "steam distillation",
+  "source_reference": "Literature review - ISO 3518, pharmacopeia standards",
+  "notes": "East Indian sandalwood is the benchmark. Australian (S. spicatum) and New Caledonian (S. austrocaledonicum) have different profiles.",
+  "peaks": [
+    {"compound_name": "alpha-Santalol", "cas_number": "115-71-9", "area_percent": 46.0, "range_min": 41.0, "range_max": 55.0},
+    {"compound_name": "beta-Santalol", "cas_number": "77-42-9", "area_percent": 21.0, "range_min": 16.0, "range_max": 24.0},
+    {"compound_name": "epi-beta-Santalol", "cas_number": "25132-35-4", "area_percent": 4.0, "range_min": 2.0, "range_max": 6.0},
+    {"compound_name": "alpha-Bergamotol", "cas_number": "88034-74-6", "area_percent": 3.5, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "Santalene", "cas_number": "512-61-8", "area_percent": 3.0, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "beta-Santalene", "cas_number": "511-59-1", "area_percent": 2.5, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "Lanceol", "cas_number": "1125-20-6", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.0},
+    {"compound_name": "Nuciferol", "cas_number": "60933-76-2", "area_percent": 1.5, "range_min": 0.5, "range_max": 2.5}
+  ],
+  "key_markers": {
+    "115-71-9": "alpha-Santalol - primary creamy woody character",
+    "77-42-9": "beta-Santalol - milky sweet facet"
+  },
+  "olfactive_description": "Soft, creamy, milky woody with sweet balsamic undertones. Extremely tenacious base note.",
+  "typical_use_level_percent": 5.0
+}

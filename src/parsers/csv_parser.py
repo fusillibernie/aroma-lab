@@ -21,7 +21,7 @@ class CSVParser(BaseParser):
 
     # Column name mappings
     RT_COLUMNS = ["rt", "retention_time", "time", "ret_time", "retention time"]
-    AREA_COLUMNS = ["area_percent", "area%", "area %", "pct", "percent", "area percent", "%"]
+    AREA_COLUMNS = ["area_percent", "area%", "area %", "pct", "percent", "area percent", "%", "area"]
     NAME_COLUMNS = ["compound", "name", "compound_name", "compound name", "identification"]
     CAS_COLUMNS = ["cas", "cas_number", "cas#", "cas number"]
     MATCH_COLUMNS = ["match", "quality", "match_quality", "match quality", "si", "similarity"]

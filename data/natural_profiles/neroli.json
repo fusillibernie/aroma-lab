@@ -1,0 +1,27 @@
+{
+  "name": "Neroli",
+  "botanical_name": "Citrus aurantium var. amara",
+  "origin": "Tunisia/Egypt",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC6270488 - Volatile Constituents and Antioxidant Activity of Citrus aurantium; PMID 24163946 - Chemical composition and antimicrobial activities",
+  "notes": "Distilled from bitter orange blossoms. Composition varies by geographic origin. Egyptian and Tunisian oils have distinct profiles.",
+  "peaks": [
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 28.5, "range_min": 18.9, "range_max": 44.0},
+    {"compound_name": "Linalyl acetate", "cas_number": "115-95-7", "area_percent": 19.6, "range_min": 3.0, "range_max": 31.4},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 12.0, "range_min": 4.6, "range_max": 27.5},
+    {"compound_name": "(E)-Nerolidol", "cas_number": "40716-66-3", "area_percent": 9.1, "range_min": 1.0, "range_max": 17.5},
+    {"compound_name": "(E,E)-Farnesol", "cas_number": "106-28-5", "area_percent": 9.1, "range_min": 5.0, "range_max": 9.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 4.9, "range_min": 2.0, "range_max": 14.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 6.0, "range_min": 5.7, "range_max": 19.0},
+    {"compound_name": "trans-beta-Ocimene", "cas_number": "3779-61-1", "area_percent": 4.0, "range_min": 0.0, "range_max": 7.9},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 5.0, "range_min": 4.2, "range_max": 5.7},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 2.5, "range_min": 1.5, "range_max": 4.0}
+  ],
+  "key_markers": {
+    "78-70-6": "Linalool - fresh floral woody",
+    "40716-66-3": "(E)-Nerolidol - floral woody, characteristic neroli",
+    "106-28-5": "(E,E)-Farnesol - floral rose-like"
+  },
+  "olfactive_description": "Fresh, sweet orange blossom floral with honeyed, slightly metallic green undertones. Elegant and uplifting.",
+  "typical_use_level_percent": 2.0
+}

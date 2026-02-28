@@ -1,0 +1,27 @@
+{
+  "name": "Patchouli",
+  "botanical_name": "Pogostemon cablin",
+  "origin": "Indonesia",
+  "extraction_method": "steam distillation",
+  "source_reference": "PMC6272783 - A Comprehensive Review on the Phytochemical Constituents and Pharmacological Activities of Pogostemon cablin",
+  "notes": "Aged patchouli oil has refined, less harsh character. Patchoulol and alpha-patchoulene concentrations indicate oil quality. Over 140 compounds identified.",
+  "peaks": [
+    {"compound_name": "Patchoulol (Patchouli alcohol)", "cas_number": "5986-55-0", "area_percent": 36.6, "range_min": 17.5, "range_max": 54.3},
+    {"compound_name": "alpha-Bulnesene", "cas_number": "3691-11-0", "area_percent": 14.0, "range_min": 9.9, "range_max": 20.3},
+    {"compound_name": "alpha-Guaiene", "cas_number": "3691-12-1", "area_percent": 12.0, "range_min": 3.2, "range_max": 22.2},
+    {"compound_name": "Seychellene", "cas_number": "20085-93-2", "area_percent": 7.1, "range_min": 4.7, "range_max": 8.9},
+    {"compound_name": "alpha-Patchoulene", "cas_number": "560-32-7", "area_percent": 7.1, "range_min": 2.3, "range_max": 20.9},
+    {"compound_name": "beta-Patchoulene", "cas_number": "514-51-2", "area_percent": 5.0, "range_min": 0.9, "range_max": 12.1},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 3.5, "range_min": 1.9, "range_max": 6.8},
+    {"compound_name": "Pogostone", "cas_number": "21298-58-4", "area_percent": 2.5, "range_min": 0.5, "range_max": 21.3},
+    {"compound_name": "Pogostol", "cas_number": "21698-41-9", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Norpatchoulenol", "cas_number": "41429-52-1", "area_percent": 1.2, "range_min": 0.5, "range_max": 2.5}
+  ],
+  "key_markers": {
+    "5986-55-0": "Patchoulol - earthy, woody, characteristic patchouli",
+    "560-32-7": "alpha-Patchoulene - quality indicator",
+    "3691-11-0": "alpha-Bulnesene - woody sesquiterpene"
+  },
+  "olfactive_description": "Deep, earthy, woody-musty with sweet balsamic undertones. Rich, dark, and grounding character.",
+  "typical_use_level_percent": 5.0
+}
