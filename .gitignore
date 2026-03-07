@@ -52,6 +52,7 @@ data/literature/*.json
 !data/**/.gitkeep
 
 # Track core aromachemical reference data
+!data/literature/ifra_restrictions.json
 !data/aromachemicals/common_aromachemicals.json
 !data/aromachemicals/expanded_aromachemicals.json
 !data/aromachemicals/extended_palette.json
@@ -64,3 +65,4 @@ data/literature/*.json
 # OS
 .DS_Store
 Thumbs.db
+data/user/

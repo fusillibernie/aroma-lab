@@ -9,6 +9,7 @@ from src.models import (
     NaturalProfile,
 )
 from src.matching.matcher import AromachemicalMatcher, MatchResult
+from src.formulator.optimizer import FormulaOptimizer
 
 
 @dataclass
@@ -115,18 +116,12 @@ class FormulatorEngine:
     ) -> Formula:
         """Optimize formula to meet cost target while maintaining character.
 
-        Strategy:
-        1. Identify most expensive ingredients
-        2. Find cheaper substitutes
-        3. Reduce non-critical ingredients
+        Delegates to FormulaOptimizer which uses substitution maps and
+        fidelity scoring to find cheaper alternatives.
         """
-        # TODO: Implement cost optimization
-        # This is a complex optimization problem that may require:
-        # - Understanding which ingredients are "key" to the character
-        # - Finding acceptable substitutes
-        # - Balancing cost vs fidelity
-
-        return formula
+        optimizer = FormulaOptimizer(self.matcher._all)
+        result = optimizer.optimize_cost(formula, target_cost)
+        return result.optimized_formula
 
     def compare_formulas(
         self,

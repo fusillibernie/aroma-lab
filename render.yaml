@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: aroma-lab
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+    disk:
+      name: aroma-lab-data
+      mountPath: /app/data
+      sizeGB: 1

@@ -20,6 +20,24 @@ from parsers.agilent_parser import AgilentParser
 from parsers.shimadzu_parser import ShimadzuParser
 from parsers.nist_parser import NISTParser
 
+
+def dict_to_aromachemical(d: dict) -> Aromachemical:
+    """Convert a raw dict (from JSON) to an Aromachemical model object."""
+    return Aromachemical(
+        cas_number=d.get("cas_number", ""),
+        name=d.get("name", ""),
+        odor_description=d.get("odor_description", ""),
+        volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
+        odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
+        cost_per_kg_usd=d.get("cost_per_kg_usd"),
+        boiling_point_c=d.get("boiling_point_c"),
+        vapor_pressure_mmhg=d.get("vapor_pressure_mmhg"),
+        odor_threshold_ppm=d.get("odor_threshold_ppm"),
+        ifra_restricted=d.get("ifra_restricted", False),
+        max_usage_percent=d.get("max_usage_percent"),
+    )
+
+
 app = FastAPI(
     title="Aroma Lab",
     description="Fragrance reconstruction from GC-MS analysis",
@@ -30,16 +48,44 @@ app = FastAPI(
 DATA_DIR = Path(__file__).parent.parent / "data"
 AROMACHEMICALS_DIR = DATA_DIR / "aromachemicals"
 
-# In-memory storage
-formulas_db: dict[str, dict] = {}
-profiles_db: dict[str, dict] = {}  # Store parsed GC-MS profiles
+# Persistence paths
+USER_DATA_DIR = DATA_DIR / "user"
+FORMULAS_FILE = USER_DATA_DIR / "formulas.json"
+PROFILES_FILE = USER_DATA_DIR / "profiles.json"
+USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _load_json_store(path: Path) -> dict:
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    return {}
+
+
+def _save_json_store(path: Path, data: dict) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, default=str)
+
+
+# Persistent storage — loaded from disk on startup
+formulas_db: dict[str, dict] = _load_json_store(FORMULAS_FILE)
+profiles_db: dict[str, dict] = _load_json_store(PROFILES_FILE)
 
 # Available parsers
 PARSERS = [NISTParser(), ShimadzuParser(), AgilentParser(), CSVParser()]
 
 
+_aromachemicals_cache: list[dict] | None = None
+
+
 def load_aromachemicals() -> list[dict]:
-    """Load all aromachemicals from JSON files."""
+    """Load all aromachemicals from JSON files (cached after first load)."""
+    global _aromachemicals_cache
+    if _aromachemicals_cache is not None:
+        return _aromachemicals_cache
     chemicals = []
     if AROMACHEMICALS_DIR.exists():
         for json_file in AROMACHEMICALS_DIR.glob("*.json"):
@@ -50,7 +96,8 @@ def load_aromachemicals() -> list[dict]:
                         chemicals.extend(data)
             except (json.JSONDecodeError, IOError):
                 continue
-    return chemicals
+    _aromachemicals_cache = chemicals
+    return _aromachemicals_cache
 
 
 def build_chemical_index(chemicals: list[dict]) -> dict:
@@ -361,6 +408,7 @@ async def generate_formula_from_reference(
     }
 
     formulas_db[formula_id] = formula
+    _save_json_store(FORMULAS_FILE, formulas_db)
     return formula
 
 
@@ -371,6 +419,7 @@ async def create_formula(formula: dict):
     formula_id = str(uuid.uuid4())[:8]
     formula["id"] = formula_id
     formulas_db[formula_id] = formula
+    _save_json_store(FORMULAS_FILE, formulas_db)
     return {"id": formula_id, "formula": formula}
 
 
@@ -395,6 +444,7 @@ async def update_formula(formula_id: str, formula: dict):
         raise HTTPException(status_code=404, detail="Formula not found")
     formula["id"] = formula_id
     formulas_db[formula_id] = formula
+    _save_json_store(FORMULAS_FILE, formulas_db)
     return {"id": formula_id, "formula": formula}
 
 
@@ -404,6 +454,7 @@ async def delete_formula(formula_id: str):
     if formula_id not in formulas_db:
         raise HTTPException(status_code=404, detail="Formula not found")
     del formulas_db[formula_id]
+    _save_json_store(FORMULAS_FILE, formulas_db)
     return {"status": "deleted"}
 
 
@@ -433,6 +484,7 @@ async def upload_gcms(file: UploadFile = File(...)):
         "peak_count": result["peak_count"],
         "notes": result.get("notes", ""),
     }
+    _save_json_store(PROFILES_FILE, profiles_db)
 
     return {
         "profile_id": profile_id,
@@ -578,6 +630,7 @@ async def generate_formula_from_profile(
     }
 
     formulas_db[formula_id] = formula
+    _save_json_store(FORMULAS_FILE, formulas_db)
 
     return formula
 
@@ -673,26 +726,13 @@ async def optimize_formula_cost(formula_id: str, target_cost: float, min_fidelit
         from formulator.optimizer import FormulaOptimizer, ApplicationType
         from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
-        return {"error": f"Optimizer not available: {e}"}
+        raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
     formula_data = formulas_db[formula_id]
     chemicals = load_aromachemicals()
     cas_to_chem = {c["cas_number"]: c for c in chemicals}
 
     # Convert to model objects
-    def dict_to_aromachemical(d: dict) -> Aromachemical:
-        return Aromachemical(
-            cas_number=d.get("cas_number", ""),
-            name=d.get("name", ""),
-            odor_description=d.get("odor_description", ""),
-            volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
-            odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
-            cost_per_kg_usd=d.get("cost_per_kg_usd"),
-            boiling_point_c=d.get("boiling_point_c"),
-            ifra_restricted=d.get("ifra_restricted", False),
-            max_usage_percent=d.get("max_usage_percent"),
-        )
-
     ac_objects = [dict_to_aromachemical(c) for c in chemicals]
     optimizer = FormulaOptimizer(ac_objects)
 
@@ -735,7 +775,7 @@ async def check_ifra_compliance(formula_id: str, application: str = "fine_fragra
         from formulator.optimizer import FormulaOptimizer, ApplicationType
         from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
-        return {"error": f"Optimizer not available: {e}"}
+        raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
     # Parse application type
     try:
@@ -746,17 +786,6 @@ async def check_ifra_compliance(formula_id: str, application: str = "fine_fragra
     formula_data = formulas_db[formula_id]
     chemicals = load_aromachemicals()
     cas_to_chem = {c["cas_number"]: c for c in chemicals}
-
-    def dict_to_aromachemical(d: dict) -> Aromachemical:
-        return Aromachemical(
-            cas_number=d.get("cas_number", ""),
-            name=d.get("name", ""),
-            odor_description=d.get("odor_description", ""),
-            volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
-            odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
-            ifra_restricted=d.get("ifra_restricted", False),
-            max_usage_percent=d.get("max_usage_percent"),
-        )
 
     ac_objects = [dict_to_aromachemical(c) for c in chemicals]
     optimizer = FormulaOptimizer(ac_objects)
@@ -798,19 +827,11 @@ async def analyze_volatility(formula_id: str):
         from formulator.optimizer import FormulaOptimizer
         from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
-        return {"error": f"Optimizer not available: {e}"}
+        raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
     formula_data = formulas_db[formula_id]
     chemicals = load_aromachemicals()
     cas_to_chem = {c["cas_number"]: c for c in chemicals}
-
-    def dict_to_aromachemical(d: dict) -> Aromachemical:
-        return Aromachemical(
-            cas_number=d.get("cas_number", ""),
-            name=d.get("name", ""),
-            volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
-            odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
-        )
 
     ac_objects = [dict_to_aromachemical(c) for c in chemicals]
     optimizer = FormulaOptimizer(ac_objects)
@@ -847,22 +868,11 @@ async def estimate_longevity(formula_id: str):
         from formulator.optimizer import FormulaOptimizer
         from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
-        return {"error": f"Optimizer not available: {e}"}
+        raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
     formula_data = formulas_db[formula_id]
     chemicals = load_aromachemicals()
     cas_to_chem = {c["cas_number"]: c for c in chemicals}
-
-    def dict_to_aromachemical(d: dict) -> Aromachemical:
-        return Aromachemical(
-            cas_number=d.get("cas_number", ""),
-            name=d.get("name", ""),
-            volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
-            odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
-            boiling_point_c=d.get("boiling_point_c"),
-            vapor_pressure_mmhg=d.get("vapor_pressure_mmhg"),
-            odor_threshold_ppm=d.get("odor_threshold_ppm"),
-        )
 
     ac_objects = [dict_to_aromachemical(c) for c in chemicals]
     optimizer = FormulaOptimizer(ac_objects)
@@ -899,7 +909,7 @@ async def get_suggestions(formula_id: str, application: str = "fine_fragrance"):
         from formulator.optimizer import FormulaOptimizer, ApplicationType
         from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
-        return {"error": f"Optimizer not available: {e}"}
+        raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
     try:
         app_type = ApplicationType(application)
@@ -909,17 +919,6 @@ async def get_suggestions(formula_id: str, application: str = "fine_fragrance"):
     formula_data = formulas_db[formula_id]
     chemicals = load_aromachemicals()
     cas_to_chem = {c["cas_number"]: c for c in chemicals}
-
-    def dict_to_aromachemical(d: dict) -> Aromachemical:
-        return Aromachemical(
-            cas_number=d.get("cas_number", ""),
-            name=d.get("name", ""),
-            volatility=Volatility(d["volatility"]) if d.get("volatility") else None,
-            odor_families=[OdorFamily(f) for f in d.get("odor_families", []) if f in [e.value for e in OdorFamily]],
-            boiling_point_c=d.get("boiling_point_c"),
-            ifra_restricted=d.get("ifra_restricted", False),
-            max_usage_percent=d.get("max_usage_percent"),
-        )
 
     ac_objects = [dict_to_aromachemical(c) for c in chemicals]
     optimizer = FormulaOptimizer(ac_objects)
