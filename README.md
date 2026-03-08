@@ -1,5 +1,10 @@
 # Aroma Lab
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/fusillibernie/aroma-lab?quickstart=1)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fusillibernie/aroma-lab)
+
+> **Try it now** -- Click either badge above to launch the app in your browser. No install needed. The server starts automatically and opens the UI on port 8000.
+
 A fragrance formulation tool that uses GC-MS data analysis and aromachemical matching to recreate natural aromatic profiles with synthetic ingredients.
 
 ## Overview
@@ -14,7 +19,6 @@ Aroma Lab enables perfumers and flavor chemists to:
 ## Installation
 
 ```bash
-cd C:\Users\pwong\projects\aroma-lab
 pip install -e .
 
 # For development
