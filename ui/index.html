@@ -678,6 +678,14 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // Security: HTML escape helper to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // State
         let chemicals = [];
         let currentFormula = { name: '', description: '', ingredients: [] };
@@ -914,13 +922,13 @@
                 return;
             }
             list.innerHTML = chems.slice(0, 100).map(c => `
-                <div class="chemical-item" onclick="selectChemicalForFormula('${c.cas_number}')">
+                <div class="chemical-item" onclick="selectChemicalForFormula('${escapeHtml(c.cas_number)}')">
                     <div>
-                        <div class="chemical-name">${c.name}</div>
-                        <div class="chemical-cas">CAS: ${c.cas_number}</div>
-                        <div class="chemical-odor">${(c.odor_description || '').substring(0, 60)}</div>
+                        <div class="chemical-name">${escapeHtml(c.name)}</div>
+                        <div class="chemical-cas">CAS: ${escapeHtml(c.cas_number)}</div>
+                        <div class="chemical-odor">${escapeHtml((c.odor_description || '').substring(0, 60))}</div>
                     </div>
-                    <span class="volatility-badge volatility-${c.volatility || 'heart'}">${c.volatility || 'heart'}</span>
+                    <span class="volatility-badge volatility-${escapeHtml(c.volatility || 'heart')}">${escapeHtml(c.volatility || 'heart')}</span>
                 </div>
             `).join('');
         }
@@ -966,12 +974,12 @@
                         resultsDiv.innerHTML = '<div style="padding: 16px; color: var(--text-muted);">No matches found</div>';
                     } else {
                         resultsDiv.innerHTML = data.results.map(c => `
-                            <div class="search-result-item" onclick="selectSearchResult('${c.cas_number}')">
+                            <div class="search-result-item" onclick="selectSearchResult('${escapeHtml(c.cas_number)}')">
                                 <div class="info">
-                                    <div class="name">${c.name}</div>
-                                    <div class="odor">${(c.odor_description || '').substring(0, 50)}...</div>
+                                    <div class="name">${escapeHtml(c.name)}</div>
+                                    <div class="odor">${escapeHtml((c.odor_description || '').substring(0, 50))}...</div>
                                 </div>
-                                <span class="volatility-badge volatility-${c.volatility || 'heart'}">${c.volatility || 'heart'}</span>
+                                <span class="volatility-badge volatility-${escapeHtml(c.volatility || 'heart')}">${escapeHtml(c.volatility || 'heart')}</span>
                             </div>
                         `).join('');
                     }
@@ -1063,8 +1071,8 @@
             } else {
                 list.innerHTML = currentFormula.ingredients.map((ing, i) => `
                     <div class="ingredient-row">
-                        <span class="volatility-badge volatility-${ing.volatility}">${ing.volatility}</span>
-                        <span class="ingredient-name">${ing.name}</span>
+                        <span class="volatility-badge volatility-${escapeHtml(ing.volatility)}">${escapeHtml(ing.volatility)}</span>
+                        <span class="ingredient-name">${escapeHtml(ing.name)}</span>
                         <input type="number" value="${ing.percentage}" onchange="updateIngredientPercent(${i}, this.value)" step="0.1">
                         <span>%</span>
                         <button class="remove-btn" onclick="removeIngredient(${i})">&#10005;</button>
@@ -1087,9 +1095,9 @@
             const heart = currentFormula.ingredients.filter(i => i.volatility === 'heart');
             const base = currentFormula.ingredients.filter(i => i.volatility === 'base');
 
-            document.getElementById('pyramidTop').innerHTML = top.length ? top.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
-            document.getElementById('pyramidHeart').innerHTML = heart.length ? heart.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
-            document.getElementById('pyramidBase').innerHTML = base.length ? base.map(i => `${i.name} ${i.percentage}%`).join(', ') : '-';
+            document.getElementById('pyramidTop').innerHTML = top.length ? top.map(i => `${escapeHtml(i.name)} ${i.percentage}%`).join(', ') : '-';
+            document.getElementById('pyramidHeart').innerHTML = heart.length ? heart.map(i => `${escapeHtml(i.name)} ${i.percentage}%`).join(', ') : '-';
+            document.getElementById('pyramidBase').innerHTML = base.length ? base.map(i => `${escapeHtml(i.name)} ${i.percentage}%`).join(', ') : '-';
         }
 
         function clearFormula() {

@@ -1,25 +1,25 @@
 """
 Aroma Lab API - FastAPI backend for fragrance formulation and GC-MS reconstruction
 """
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from pathlib import Path
 import json
 import re
 from typing import Optional
-import sys
 import uuid
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from models import Aromachemical, Formula, FormulaIngredient, GCMSPeak, NaturalProfile, Volatility, OdorFamily
-from parsers.csv_parser import CSVParser
-from parsers.agilent_parser import AgilentParser
-from parsers.shimadzu_parser import ShimadzuParser
-from parsers.nist_parser import NISTParser
+from src.models import Aromachemical, Formula, FormulaIngredient, GCMSPeak, NaturalProfile, Volatility, OdorFamily
+from src.parsers.csv_parser import CSVParser
+from src.parsers.agilent_parser import AgilentParser
+from src.parsers.shimadzu_parser import ShimadzuParser
+from src.parsers.nist_parser import NISTParser
 
 
 def dict_to_aromachemical(d: dict) -> Aromachemical:
@@ -39,10 +39,22 @@ def dict_to_aromachemical(d: dict) -> Aromachemical:
     )
 
 
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="Aroma Lab",
     description="Fragrance reconstruction from GC-MS analysis",
     version="2.0.0"
+)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Data paths
@@ -478,19 +490,28 @@ async def delete_formula(formula_id: str):
 
 
 @app.post("/api/upload/gcms")
-async def upload_gcms(file: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def upload_gcms(request: Request, file: UploadFile = File(...)):
     """Upload and parse a GC-MS data file using specialized parsers.
 
     Supports: NIST MS Search, Shimadzu LabSolutions, Agilent ChemStation, CSV
     """
+    # Validate file type
+    allowed_extensions = {".csv", ".txt", ".mzml", ".xml", ".tsv"}
+    filename = file.filename or "unknown"
+    file_ext = Path(filename).suffix.lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type not allowed. Allowed: {sorted(allowed_extensions)}",
+        )
+
     content = await file.read()
 
     # Validate file size (max 10 MB)
     max_size = 10 * 1024 * 1024
     if len(content) > max_size:
         raise HTTPException(status_code=413, detail="File too large. Maximum size is 10 MB.")
-
-    filename = file.filename or "unknown"
 
     # Parse using appropriate parser
     result = parse_gcms_file(content, filename)
@@ -500,9 +521,10 @@ async def upload_gcms(file: UploadFile = File(...)):
 
     # Store the profile for later use
     profile_id = str(uuid.uuid4())[:8]
+    safe_filename = re.sub(r'[<>&"\'/\\]', '_', Path(filename).name)
     profiles_db[profile_id] = {
         "id": profile_id,
-        "filename": filename,
+        "filename": safe_filename,
         "parser": result["parser"],
         "name": result["name"],
         "peaks": result["peaks"],
