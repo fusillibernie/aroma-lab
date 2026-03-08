@@ -4,6 +4,7 @@ Aroma Lab API - FastAPI backend for fragrance formulation and GC-MS reconstructi
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel, Field
 from pathlib import Path
 import json
 import re
@@ -231,8 +232,8 @@ def parse_gcms_file(content: bytes, filename: str) -> dict:
                 }
 
         return {"success": False, "error": "No parser could handle this file format"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    except Exception:
+        return {"success": False, "error": "Failed to parse the uploaded file"}
     finally:
         os.unlink(temp_path)
 
@@ -412,15 +413,32 @@ async def generate_formula_from_reference(
     return formula
 
 
+class FormulaIngredientInput(BaseModel):
+    cas_number: str = ""
+    name: str
+    percentage: float = Field(ge=0, le=100)
+    volatility: str = "heart"
+    confidence: float = 0.0
+    match_type: str = ""
+    original_compound: Optional[str] = None
+    odor_description: str = ""
+
+
+class FormulaInput(BaseModel):
+    name: str
+    ingredients: list[FormulaIngredientInput] = []
+    notes: Optional[str] = None
+
+
 @app.post("/api/formulas")
-async def create_formula(formula: dict):
+async def create_formula(formula: FormulaInput):
     """Create a new formula."""
-    import uuid
     formula_id = str(uuid.uuid4())[:8]
-    formula["id"] = formula_id
-    formulas_db[formula_id] = formula
+    formula_dict = formula.model_dump()
+    formula_dict["id"] = formula_id
+    formulas_db[formula_id] = formula_dict
     _save_json_store(FORMULAS_FILE, formulas_db)
-    return {"id": formula_id, "formula": formula}
+    return {"id": formula_id, "formula": formula_dict}
 
 
 @app.get("/api/formulas")
@@ -438,14 +456,15 @@ async def get_formula(formula_id: str):
 
 
 @app.put("/api/formulas/{formula_id}")
-async def update_formula(formula_id: str, formula: dict):
+async def update_formula(formula_id: str, formula: FormulaInput):
     """Update a formula."""
     if formula_id not in formulas_db:
         raise HTTPException(status_code=404, detail="Formula not found")
-    formula["id"] = formula_id
-    formulas_db[formula_id] = formula
+    formula_dict = formula.model_dump()
+    formula_dict["id"] = formula_id
+    formulas_db[formula_id] = formula_dict
     _save_json_store(FORMULAS_FILE, formulas_db)
-    return {"id": formula_id, "formula": formula}
+    return {"id": formula_id, "formula": formula_dict}
 
 
 @app.delete("/api/formulas/{formula_id}")
@@ -465,6 +484,12 @@ async def upload_gcms(file: UploadFile = File(...)):
     Supports: NIST MS Search, Shimadzu LabSolutions, Agilent ChemStation, CSV
     """
     content = await file.read()
+
+    # Validate file size (max 10 MB)
+    max_size = 10 * 1024 * 1024
+    if len(content) > max_size:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10 MB.")
+
     filename = file.filename or "unknown"
 
     # Parse using appropriate parser
@@ -950,4 +975,4 @@ if ui_dir.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

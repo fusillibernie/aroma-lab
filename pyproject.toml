@@ -18,6 +18,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "pandas>=2.0.0",
     "pubchempy>=1.0.4",
+    "defusedxml>=0.7.0",
 ]
 
 [project.optional-dependencies]

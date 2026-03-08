@@ -78,8 +78,8 @@ class TestFormulaEndpoints:
         formula_data = {
             "name": "Test Formula",
             "ingredients": [
-                {"cas_number": "106-24-1", "percentage": 50.0},
-                {"cas_number": "106-22-9", "percentage": 50.0},
+                {"cas_number": "106-24-1", "name": "Geraniol", "percentage": 50.0},
+                {"cas_number": "106-22-9", "name": "Citronellol", "percentage": 50.0},
             ],
         }
 
@@ -128,9 +128,9 @@ class TestOptimizationEndpoints:
         formula_data = {
             "name": "Optimization Test",
             "ingredients": [
-                {"cas_number": "106-24-1", "percentage": 30.0},
-                {"cas_number": "106-22-9", "percentage": 30.0},
-                {"cas_number": "3691-12-1", "percentage": 40.0},
+                {"cas_number": "106-24-1", "name": "Geraniol", "percentage": 30.0},
+                {"cas_number": "106-22-9", "name": "Citronellol", "percentage": 30.0},
+                {"cas_number": "3691-12-1", "name": "Ionone alpha", "percentage": 40.0},
             ],
         }
         response = client.post("/api/formulas", json=formula_data)

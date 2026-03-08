@@ -19,7 +19,8 @@ References:
 import base64
 import struct
 import zlib
-import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import ParseError
+import defusedxml.ElementTree as ET
 from pathlib import Path
 from typing import Optional, Iterator
 
@@ -406,7 +407,7 @@ class MzMLParser(BaseParser):
         try:
             tree = ET.parse(file_path)
             root = tree.getroot()
-        except ET.ParseError as e:
+        except ParseError as e:
             raise ValueError(f"Failed to parse XML file {file_path}: {e}")
 
         # Detect format
