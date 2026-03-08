@@ -1,6 +1,7 @@
 """
 Aroma Lab API - FastAPI backend for fragrance formulation and GC-MS reconstruction
 """
+import os
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -52,7 +53,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -770,8 +771,8 @@ async def optimize_formula_cost(formula_id: str, target_cost: float, min_fidelit
 
     # Import optimizer
     try:
-        from formulator.optimizer import FormulaOptimizer, ApplicationType
-        from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
+        from src.formulator.optimizer import FormulaOptimizer, ApplicationType
+        from src.models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
         raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
@@ -819,8 +820,8 @@ async def check_ifra_compliance(formula_id: str, application: str = "fine_fragra
         raise HTTPException(status_code=404, detail="Formula not found")
 
     try:
-        from formulator.optimizer import FormulaOptimizer, ApplicationType
-        from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
+        from src.formulator.optimizer import FormulaOptimizer, ApplicationType
+        from src.models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
         raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
@@ -871,8 +872,8 @@ async def analyze_volatility(formula_id: str):
         raise HTTPException(status_code=404, detail="Formula not found")
 
     try:
-        from formulator.optimizer import FormulaOptimizer
-        from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
+        from src.formulator.optimizer import FormulaOptimizer
+        from src.models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
         raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
@@ -912,8 +913,8 @@ async def estimate_longevity(formula_id: str):
         raise HTTPException(status_code=404, detail="Formula not found")
 
     try:
-        from formulator.optimizer import FormulaOptimizer
-        from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
+        from src.formulator.optimizer import FormulaOptimizer
+        from src.models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
         raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
@@ -953,8 +954,8 @@ async def get_suggestions(formula_id: str, application: str = "fine_fragrance"):
         raise HTTPException(status_code=404, detail="Formula not found")
 
     try:
-        from formulator.optimizer import FormulaOptimizer, ApplicationType
-        from models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
+        from src.formulator.optimizer import FormulaOptimizer, ApplicationType
+        from src.models import Formula, FormulaIngredient, Aromachemical, Volatility, OdorFamily
     except ImportError as e:
         raise HTTPException(status_code=503, detail=f"Optimizer not available: {e}")
 
