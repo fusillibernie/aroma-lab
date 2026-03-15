@@ -1,0 +1,29 @@
+{
+  "name": "Peppermint",
+  "botanical_name": "Mentha piperita",
+  "origin": "USA (Pacific Northwest / Midwest) / India",
+  "extraction_method": "steam distillation (aerial parts)",
+  "source_reference": "ISO 856:2006 - Oil of peppermint; Lawrence, 'Mint: The Genus Mentha', 2007; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960",
+  "notes": "Willamette Valley (Oregon) peppermint is considered the highest quality. Indian (Mentha arvensis) dementholized mint is distinct and cheaper. Pulegone content must be monitored for safety.",
+  "peaks": [
+    {"compound_name": "Menthol", "cas_number": "2216-51-5", "area_percent": 38.0, "range_min": 30.0, "range_max": 50.0},
+    {"compound_name": "Menthone", "cas_number": "89-80-5", "area_percent": 22.0, "range_min": 14.0, "range_max": 32.0},
+    {"compound_name": "Menthyl acetate", "cas_number": "89-48-5", "area_percent": 5.5, "range_min": 2.8, "range_max": 10.0},
+    {"compound_name": "1,8-Cineole", "cas_number": "470-82-6", "area_percent": 5.0, "range_min": 3.5, "range_max": 8.0},
+    {"compound_name": "Isomenthone", "cas_number": "491-07-6", "area_percent": 3.5, "range_min": 1.5, "range_max": 6.0},
+    {"compound_name": "Menthofuran", "cas_number": "494-90-6", "area_percent": 3.0, "range_min": 1.0, "range_max": 8.0},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 2.5, "range_min": 1.0, "range_max": 5.0},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 2.0, "range_min": 1.0, "range_max": 3.5},
+    {"compound_name": "Pulegone", "cas_number": "89-82-7", "area_percent": 1.5, "range_min": 0.5, "range_max": 4.0},
+    {"compound_name": "Neomenthol", "cas_number": "2216-52-6", "area_percent": 3.0, "range_min": 2.0, "range_max": 5.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 1.0, "range_min": 0.5, "range_max": 2.0},
+    {"compound_name": "Germacrene D", "cas_number": "23986-74-5", "area_percent": 1.0, "range_min": 0.3, "range_max": 2.5}
+  ],
+  "key_markers": {
+    "2216-51-5": "Menthol - cooling, fresh mint character; primary olfactive driver",
+    "89-80-5": "Menthone - minty-green ketone providing body and depth",
+    "494-90-6": "Menthofuran - sweet, musty, hay-like; quality marker (high levels indicate late-harvest or re-distilled oil)"
+  },
+  "olfactive_description": "Intensely cool, fresh, and penetrating minty-green with a clean, sweet undertone. Invigorating with camphoraceous-herbaceous body. Sweet menthyl acetate adds a fruity-candy facet.",
+  "typical_use_level_percent": 2.0
+}

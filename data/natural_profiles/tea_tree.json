@@ -1,0 +1,29 @@
+{
+  "name": "Tea Tree",
+  "botanical_name": "Melaleuca alternifolia",
+  "origin": "Australia (New South Wales)",
+  "extraction_method": "steam distillation (leaves and terminal branchlets)",
+  "source_reference": "ISO 4730:2017 - Oil of Melaleuca, terpinen-4-ol type; Carson et al., Clinical Microbiology Reviews, 2006",
+  "notes": "Quality is defined by ISO 4730: terpinen-4-ol must be >30% and 1,8-cineole must be <15%. High-cineole chemotypes are considered inferior for therapeutic and fragrance use.",
+  "peaks": [
+    {"compound_name": "Terpinen-4-ol", "cas_number": "562-74-3", "area_percent": 38.0, "range_min": 30.0, "range_max": 48.0},
+    {"compound_name": "gamma-Terpinene", "cas_number": "99-85-4", "area_percent": 18.0, "range_min": 10.0, "range_max": 28.0},
+    {"compound_name": "alpha-Terpinene", "cas_number": "99-86-5", "area_percent": 8.5, "range_min": 5.0, "range_max": 13.0},
+    {"compound_name": "1,8-Cineole", "cas_number": "470-82-6", "area_percent": 5.0, "range_min": 0.5, "range_max": 15.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 4.5, "range_min": 1.5, "range_max": 8.0},
+    {"compound_name": "para-Cymene", "cas_number": "99-87-6", "area_percent": 3.5, "range_min": 0.5, "range_max": 12.0},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 2.5, "range_min": 1.0, "range_max": 6.0},
+    {"compound_name": "Aromadendrene", "cas_number": "489-39-4", "area_percent": 2.0, "range_min": 0.5, "range_max": 7.0},
+    {"compound_name": "delta-Cadinene", "cas_number": "483-76-1", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Viridiflorene", "cas_number": "21747-46-6", "area_percent": 1.2, "range_min": 0.3, "range_max": 3.0},
+    {"compound_name": "Globulol", "cas_number": "489-41-8", "area_percent": 0.8, "range_min": 0.1, "range_max": 1.5},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 1.0, "range_min": 0.5, "range_max": 4.0}
+  ],
+  "key_markers": {
+    "562-74-3": "Terpinen-4-ol - primary active and olfactive component, must exceed 30% per ISO 4730",
+    "99-85-4": "gamma-Terpinene - key monoterpene precursor of terpinen-4-ol during storage",
+    "489-39-4": "Aromadendrene - sesquiterpene marker characteristic of Melaleuca species"
+  },
+  "olfactive_description": "Fresh, medicinal-camphoraceous with distinctive warm-spicy terpenic character. Clean, slightly peppery with green-herbaceous nuances. More spicy than eucalyptus.",
+  "typical_use_level_percent": 1.0
+}

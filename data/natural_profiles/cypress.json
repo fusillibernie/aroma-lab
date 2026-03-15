@@ -1,0 +1,30 @@
+{
+  "name": "Cypress (Mediterranean)",
+  "botanical_name": "Cupressus sempervirens",
+  "origin": "France / Spain / Morocco",
+  "extraction_method": "steam distillation (leaves, twigs, and cones)",
+  "source_reference": "ISO 20839:2017 - Oil of Cupressus sempervirens; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960; Ferretti et al., Flavour and Fragrance Journal, 2012",
+  "notes": "Mediterranean cypress oil is valued in fine fragrance for its clean, coniferous character. It differs from blue cypress (Callitris intratropica) which contains guaiazulene. Distillation of needles alone produces a finer oil than whole branches.",
+  "peaks": [
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 48.0, "range_min": 40.0, "range_max": 58.0},
+    {"compound_name": "delta-3-Carene", "cas_number": "13466-78-9", "area_percent": 14.0, "range_min": 8.0, "range_max": 22.0},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 4.0, "range_min": 2.0, "range_max": 8.0},
+    {"compound_name": "Terpinolene", "cas_number": "586-62-9", "area_percent": 3.5, "range_min": 1.5, "range_max": 6.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 2.5, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "Cedrol", "cas_number": "77-53-2", "area_percent": 4.5, "range_min": 2.0, "range_max": 8.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "alpha-Terpinyl acetate", "cas_number": "80-26-2", "area_percent": 3.0, "range_min": 1.0, "range_max": 5.0},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 1.2, "range_min": 0.3, "range_max": 2.5},
+    {"compound_name": "Terpinen-4-ol", "cas_number": "562-74-3", "area_percent": 1.0, "range_min": 0.3, "range_max": 2.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Camphene", "cas_number": "79-92-5", "area_percent": 0.8, "range_min": 0.2, "range_max": 1.5},
+    {"compound_name": "Manoyl oxide", "cas_number": "596-84-9", "area_percent": 2.0, "range_min": 0.5, "range_max": 4.0}
+  ],
+  "key_markers": {
+    "80-56-8": "alpha-Pinene - dominant pine-resinous character, backbone of cypress scent",
+    "13466-78-9": "delta-3-Carene - sweet, piney, distinguishes cypress from juniper",
+    "77-53-2": "Cedrol - woody, cedar-like base note providing longevity and depth"
+  },
+  "olfactive_description": "Fresh, clean, coniferous-resinous with a bright pinaceous top note. Crisp and balsamic with a smoky-woody drydown. Evokes Mediterranean landscapes and evergreen forests.",
+  "typical_use_level_percent": 3.0
+}

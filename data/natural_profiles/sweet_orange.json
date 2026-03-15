@@ -1,0 +1,27 @@
+{
+  "name": "Sweet Orange",
+  "botanical_name": "Citrus sinensis",
+  "origin": "Brazil / USA (Florida) / Italy",
+  "extraction_method": "cold pressed (peel)",
+  "source_reference": "ISO 3140:2019 - Oil of sweet orange; Sawamura, 'Citrus Essential Oils', 2010",
+  "notes": "Sweet orange oil is the most produced essential oil in the world, largely a byproduct of the juice industry. It oxidizes rapidly and must be stored under nitrogen.",
+  "peaks": [
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 93.0, "range_min": 90.0, "range_max": 97.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 1.8, "range_min": 1.0, "range_max": 3.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 0.6, "range_min": 0.2, "range_max": 1.5},
+    {"compound_name": "Decanal", "cas_number": "112-31-2", "area_percent": 0.5, "range_min": 0.1, "range_max": 0.8},
+    {"compound_name": "Octanal", "cas_number": "124-13-0", "area_percent": 0.4, "range_min": 0.1, "range_max": 0.6},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 0.5, "range_min": 0.3, "range_max": 0.8},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 0.4, "range_min": 0.1, "range_max": 0.6},
+    {"compound_name": "Valencene", "cas_number": "4630-07-3", "area_percent": 0.3, "range_min": 0.05, "range_max": 1.0},
+    {"compound_name": "Nootkatone", "cas_number": "4674-50-4", "area_percent": 0.05, "range_min": 0.01, "range_max": 0.1},
+    {"compound_name": "Nonanal", "cas_number": "124-19-6", "area_percent": 0.2, "range_min": 0.05, "range_max": 0.4}
+  ],
+  "key_markers": {
+    "5989-27-5": "Limonene - overwhelmingly dominant, defines sweet orange character",
+    "112-31-2": "Decanal - waxy orange-peel aldehyde, key contributor to fresh orange scent despite low percentage",
+    "4630-07-3": "Valencene - sesquiterpene marker distinguishing sweet orange from other citrus"
+  },
+  "olfactive_description": "Sweet, bright, juicy orange peel with a light, fresh effervescence. Warm and friendly citrus without the sharpness of lemon or bitterness of grapefruit. Slight waxy aldehydic undertone.",
+  "typical_use_level_percent": 5.0
+}

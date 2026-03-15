@@ -1,0 +1,28 @@
+{
+  "name": "Cinnamon Bark (True/Ceylon)",
+  "botanical_name": "Cinnamomum verum",
+  "origin": "Sri Lanka / Madagascar / Seychelles",
+  "extraction_method": "steam distillation (bark)",
+  "source_reference": "ISO 3524:2004 - Oil of cinnamon bark; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960; Jayaprakasha et al., J. Agric. Food Chem., 2003",
+  "notes": "True cinnamon bark oil is distinct from cassia (C. cassia) which has higher cinnamaldehyde (>80%) and significant coumarin. Ceylon cinnamon bark oil has notable eugenol content. Cinnamon leaf oil is eugenol-dominant (70-80%).",
+  "peaks": [
+    {"compound_name": "trans-Cinnamaldehyde", "cas_number": "14371-10-9", "area_percent": 55.0, "range_min": 45.0, "range_max": 75.0},
+    {"compound_name": "Eugenol", "cas_number": "97-53-0", "area_percent": 10.0, "range_min": 4.0, "range_max": 18.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 5.0, "range_min": 1.0, "range_max": 10.0},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 4.5, "range_min": 1.5, "range_max": 8.0},
+    {"compound_name": "Cinnamyl acetate", "cas_number": "103-54-8", "area_percent": 5.0, "range_min": 1.0, "range_max": 10.0},
+    {"compound_name": "Eugenyl acetate", "cas_number": "93-28-7", "area_percent": 2.5, "range_min": 0.5, "range_max": 5.0},
+    {"compound_name": "1,8-Cineole", "cas_number": "470-82-6", "area_percent": 2.0, "range_min": 0.5, "range_max": 4.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 1.5, "range_min": 0.3, "range_max": 3.0},
+    {"compound_name": "Benzyl benzoate", "cas_number": "120-51-4", "area_percent": 1.2, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "para-Cymene", "cas_number": "99-87-6", "area_percent": 1.0, "range_min": 0.2, "range_max": 2.5},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 0.8, "range_min": 0.2, "range_max": 2.0}
+  ],
+  "key_markers": {
+    "14371-10-9": "trans-Cinnamaldehyde - defines the hot, sweet, spicy cinnamon character",
+    "97-53-0": "Eugenol - clove-spicy warmth, distinguishes Ceylon from cassia",
+    "103-54-8": "Cinnamyl acetate - sweet balsamic ester, quality marker for true cinnamon"
+  },
+  "olfactive_description": "Warm, sweet, intensely spicy with a distinctive hot, dry character. Rich balsamic-woody undertones with a soft clove-like eugenol warmth. More refined and complex than cassia.",
+  "typical_use_level_percent": 0.5
+}

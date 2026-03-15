@@ -1,0 +1,28 @@
+{
+  "name": "Lemongrass (West Indian)",
+  "botanical_name": "Cymbopogon citratus",
+  "origin": "India / Guatemala / China",
+  "extraction_method": "steam distillation (leaves)",
+  "source_reference": "ISO 3217:1974 - Oil of lemongrass; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960; Schaneberg & Khan, J. Agric. Food Chem., 2002",
+  "notes": "C. citratus (West Indian) and C. flexuosus (East Indian) are both traded as lemongrass oil. East Indian has higher citral content (up to 85%) and more aldehydic sharpness. West Indian is generally preferred in fragrance for its fuller body.",
+  "peaks": [
+    {"compound_name": "Geranial (Citral a)", "cas_number": "141-27-5", "area_percent": 42.0, "range_min": 35.0, "range_max": 50.0},
+    {"compound_name": "Neral (Citral b)", "cas_number": "106-26-3", "area_percent": 30.0, "range_min": 25.0, "range_max": 38.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 10.0, "range_min": 5.0, "range_max": 18.0},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 3.5, "range_min": 1.5, "range_max": 6.0},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 2.0, "range_min": 0.5, "range_max": 4.0},
+    {"compound_name": "Nerol", "cas_number": "106-25-2", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 1.0, "range_min": 0.2, "range_max": 3.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 0.8, "range_min": 0.2, "range_max": 2.0},
+    {"compound_name": "6-Methyl-5-hepten-2-one", "cas_number": "110-93-0", "area_percent": 1.8, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Citronellal", "cas_number": "106-23-0", "area_percent": 0.5, "range_min": 0.1, "range_max": 1.5},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 0.3, "range_min": 0.1, "range_max": 1.0}
+  ],
+  "key_markers": {
+    "141-27-5": "Geranial - dominant lemon-aldehyde, the sharper isomer of citral",
+    "106-26-3": "Neral - softer, sweeter isomer of citral; ratio to geranial is diagnostic",
+    "123-35-3": "Myrcene - fresh, green terpene providing body and natural character"
+  },
+  "olfactive_description": "Strong, fresh, lemon-aldehyde character with a grassy-green herbaceous body. More pungent and less refined than lemon, with a distinctive hay-like dry undertone. Powerful and diffusive.",
+  "typical_use_level_percent": 1.5
+}

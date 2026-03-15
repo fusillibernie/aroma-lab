@@ -1,0 +1,30 @@
+{
+  "name": "Rosemary (ct. Cineole)",
+  "botanical_name": "Rosmarinus officinalis",
+  "origin": "Tunisia / Morocco / Spain",
+  "extraction_method": "steam distillation (flowering tops and leaves)",
+  "source_reference": "ISO 1342:2012 - Oil of rosemary; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960",
+  "notes": "The cineole chemotype is the most common commercial grade. The camphor chemotype (Spain) has camphor up to 25%. The verbenone chemotype (Corsica) is rarer and sweeter.",
+  "peaks": [
+    {"compound_name": "1,8-Cineole", "cas_number": "470-82-6", "area_percent": 43.0, "range_min": 38.0, "range_max": 55.0},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 11.0, "range_min": 7.0, "range_max": 16.0},
+    {"compound_name": "Camphor", "cas_number": "76-22-2", "area_percent": 8.5, "range_min": 5.0, "range_max": 15.0},
+    {"compound_name": "Camphene", "cas_number": "79-92-5", "area_percent": 4.5, "range_min": 2.5, "range_max": 7.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 4.0, "range_min": 1.0, "range_max": 6.0},
+    {"compound_name": "Borneol", "cas_number": "507-70-0", "area_percent": 3.5, "range_min": 1.5, "range_max": 6.0},
+    {"compound_name": "Bornyl acetate", "cas_number": "76-49-3", "area_percent": 2.5, "range_min": 0.5, "range_max": 5.0},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 3.0, "range_min": 1.5, "range_max": 5.0},
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 2.8, "range_min": 1.5, "range_max": 5.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 2.0, "range_min": 1.0, "range_max": 4.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Terpinen-4-ol", "cas_number": "562-74-3", "area_percent": 1.0, "range_min": 0.3, "range_max": 2.0},
+    {"compound_name": "Verbenone", "cas_number": "80-57-9", "area_percent": 0.5, "range_min": 0.1, "range_max": 1.5}
+  ],
+  "key_markers": {
+    "470-82-6": "1,8-Cineole - defines the cineole chemotype, fresh eucalyptus-like",
+    "76-22-2": "Camphor - camphoraceous sharpness, must be moderate in cineole CT",
+    "80-56-8": "alpha-Pinene - piney freshness, second monoterpene after cineole"
+  },
+  "olfactive_description": "Fresh, herbaceous-camphoraceous with clean eucalyptus-like top notes. Aromatic and stimulating with warm, slightly woody undertones. More complex and rounded than eucalyptus.",
+  "typical_use_level_percent": 2.0
+}

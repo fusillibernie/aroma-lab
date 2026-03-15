@@ -1,0 +1,29 @@
+{
+  "name": "Lemon (Cold-Pressed)",
+  "botanical_name": "Citrus limon",
+  "origin": "Italy (Sicily) / Argentina / USA (California)",
+  "extraction_method": "cold pressed (peel)",
+  "source_reference": "ISO 855:2003 - Oil of lemon, cold-pressed; Dugo & Di Giacomo, 'Citrus: The Genus Citrus', 2002",
+  "notes": "Cold-pressed lemon retains photosensitizing furocoumarins (bergaptene, oxypeucedanin). Distilled lemon is furocoumarin-free but lacks the bright aldehydic sparkle.",
+  "peaks": [
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 65.0, "range_min": 56.0, "range_max": 76.0},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 10.0, "range_min": 7.0, "range_max": 17.0},
+    {"compound_name": "gamma-Terpinene", "cas_number": "99-85-4", "area_percent": 8.5, "range_min": 6.0, "range_max": 12.0},
+    {"compound_name": "Geranial (Citral a)", "cas_number": "141-27-5", "area_percent": 2.0, "range_min": 0.8, "range_max": 3.5},
+    {"compound_name": "Neral (Citral b)", "cas_number": "106-26-3", "area_percent": 1.2, "range_min": 0.5, "range_max": 2.5},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 1.8, "range_min": 1.0, "range_max": 3.0},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 1.4, "range_min": 0.5, "range_max": 2.0},
+    {"compound_name": "Neryl acetate", "cas_number": "141-12-8", "area_percent": 0.8, "range_min": 0.3, "range_max": 1.5},
+    {"compound_name": "Geranyl acetate", "cas_number": "105-87-3", "area_percent": 0.5, "range_min": 0.2, "range_max": 1.0},
+    {"compound_name": "alpha-Terpineol", "cas_number": "98-55-5", "area_percent": 0.4, "range_min": 0.1, "range_max": 0.8},
+    {"compound_name": "Nonanal", "cas_number": "124-19-6", "area_percent": 0.3, "range_min": 0.05, "range_max": 0.5}
+  ],
+  "key_markers": {
+    "5989-27-5": "Limonene - dominant citrus character",
+    "141-27-5": "Geranial - sharp lemon aldehyde character, distinguishes lemon from orange",
+    "127-91-3": "beta-Pinene - high levels distinguish lemon from other citrus"
+  },
+  "olfactive_description": "Bright, sharp, sparkling citrus with a characteristic aldehydic zest. More pungent and green than orange, with a clean, uplifting top note and slight woody-terpenic undertone.",
+  "typical_use_level_percent": 5.0
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Grapefruit (White/Pink)",
+  "botanical_name": "Citrus paradisi",
+  "origin": "USA (Florida / Texas) / Israel",
+  "extraction_method": "cold pressed (peel)",
+  "source_reference": "Sawamura, 'Citrus Essential Oils', 2010; Shaw, J. Agric. Food Chem., 1979; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960",
+  "notes": "Grapefruit oil is highly unstable and oxidizes rapidly. The characteristic bitter-sulfurous note is due to trace thioterpineol (para-menthene-8-thiol) at sub-ppm levels. Nootkatone, while at low concentration, has very low odor threshold and contributes significantly.",
+  "peaks": [
+    {"compound_name": "Limonene", "cas_number": "5989-27-5", "area_percent": 90.0, "range_min": 86.0, "range_max": 95.0},
+    {"compound_name": "Myrcene", "cas_number": "123-35-3", "area_percent": 1.8, "range_min": 1.0, "range_max": 3.5},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 0.8, "range_min": 0.3, "range_max": 1.5},
+    {"compound_name": "Sabinene", "cas_number": "3387-41-5", "area_percent": 0.5, "range_min": 0.2, "range_max": 1.0},
+    {"compound_name": "Linalool", "cas_number": "78-70-6", "area_percent": 0.3, "range_min": 0.05, "range_max": 0.6},
+    {"compound_name": "Nootkatone", "cas_number": "4674-50-4", "area_percent": 0.4, "range_min": 0.1, "range_max": 0.8},
+    {"compound_name": "Decanal", "cas_number": "112-31-2", "area_percent": 0.5, "range_min": 0.2, "range_max": 1.0},
+    {"compound_name": "Octanal", "cas_number": "124-13-0", "area_percent": 0.3, "range_min": 0.1, "range_max": 0.6},
+    {"compound_name": "Citronellal", "cas_number": "106-23-0", "area_percent": 0.2, "range_min": 0.05, "range_max": 0.5},
+    {"compound_name": "Geraniol", "cas_number": "106-24-1", "area_percent": 0.1, "range_min": 0.02, "range_max": 0.3},
+    {"compound_name": "Caryophyllene", "cas_number": "87-44-5", "area_percent": 0.15, "range_min": 0.05, "range_max": 0.3},
+    {"compound_name": "para-Menthene-8-thiol", "cas_number": "71159-90-5", "area_percent": 0.00001, "range_min": 0.000001, "range_max": 0.0001}
+  ],
+  "key_markers": {
+    "5989-27-5": "Limonene - dominant terpene carrier, provides basic citrus body",
+    "4674-50-4": "Nootkatone - sesquiterpene ketone defining grapefruit character; extremely low odor threshold (~1 ppb)",
+    "71159-90-5": "para-Menthene-8-thiol - the most powerful aroma compound known; defines characteristic grapefruit sulfurous tang at sub-ppb levels"
+  },
+  "olfactive_description": "Bright, fresh, bittersweet citrus with a distinctive sulfurous-juicy top note unlike any other citrus. Clean, slightly tart, with a subtle bitter peel undertone and unique tropical-zesty sparkle.",
+  "typical_use_level_percent": 5.0
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Clove Bud",
+  "botanical_name": "Syzygium aromaticum",
+  "origin": "Madagascar / Indonesia (Moluccas) / Tanzania",
+  "extraction_method": "steam distillation (dried flower buds)",
+  "source_reference": "ISO 3141:1997 - Oil of clove bud; Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960; Chaieb et al., Phytotherapy Research, 2007",
+  "notes": "Clove bud oil has lower eugenol and more esters than clove leaf or stem oils. Clove leaf oil is cheaper but harsher (eugenol 80-95%). Clove stem oil is intermediate.",
+  "peaks": [
+    {"compound_name": "Eugenol", "cas_number": "97-53-0", "area_percent": 78.0, "range_min": 72.0, "range_max": 90.0},
+    {"compound_name": "Eugenyl acetate", "cas_number": "93-28-7", "area_percent": 10.0, "range_min": 5.0, "range_max": 15.0},
+    {"compound_name": "beta-Caryophyllene", "cas_number": "87-44-5", "area_percent": 6.0, "range_min": 3.0, "range_max": 12.0},
+    {"compound_name": "alpha-Humulene", "cas_number": "6753-98-6", "area_percent": 1.5, "range_min": 0.5, "range_max": 3.0},
+    {"compound_name": "Caryophyllene oxide", "cas_number": "1139-30-6", "area_percent": 0.5, "range_min": 0.1, "range_max": 1.0},
+    {"compound_name": "Methyl Salicylate", "cas_number": "119-36-8", "area_percent": 0.3, "range_min": 0.05, "range_max": 0.8},
+    {"compound_name": "Chavicol", "cas_number": "501-92-8", "area_percent": 0.2, "range_min": 0.05, "range_max": 0.5}
+  ],
+  "key_markers": {
+    "97-53-0": "Eugenol - dominant warm, spicy, clove character",
+    "93-28-7": "Eugenyl acetate - sweet, fruity, balsamic ester; quality marker distinguishing bud from leaf oil",
+    "87-44-5": "beta-Caryophyllene - woody, spicy, peppery sesquiterpene"
+  },
+  "olfactive_description": "Warm, rich, intensely spicy with a sweet, slightly fruity ester top note. Deep phenolic warmth with a woody-peppery drydown. Full-bodied and tenacious.",
+  "typical_use_level_percent": 0.5
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Roman Chamomile",
+  "botanical_name": "Chamaemelum nobile",
+  "origin": "England / France / Hungary",
+  "extraction_method": "steam distillation (flowers)",
+  "source_reference": "Arctander, 'Perfume and Flavor Materials of Natural Origin', 1960; ISO 5765-1:2002; Carnat et al., Flavour and Fragrance Journal, 2004",
+  "notes": "Roman chamomile is ester-rich and fruity, very different from German chamomile (Matricaria recutita) which is dominated by chamazulene (blue color). Roman chamomile oil is one of the most expensive essential oils due to low yield (~0.5-1%).",
+  "peaks": [
+    {"compound_name": "Isobutyl angelate", "cas_number": "7779-81-9", "area_percent": 25.0, "range_min": 15.0, "range_max": 35.0},
+    {"compound_name": "Isoamyl angelate", "cas_number": "7779-65-9", "area_percent": 6.0, "range_min": 2.0, "range_max": 10.0},
+    {"compound_name": "2-Methylbutyl angelate", "cas_number": "53398-85-9", "area_percent": 8.0, "range_min": 3.0, "range_max": 12.0},
+    {"compound_name": "Methylallyl angelate", "cas_number": "16409-44-2", "area_percent": 6.5, "range_min": 2.0, "range_max": 10.0},
+    {"compound_name": "Isobutyl isobutyrate", "cas_number": "97-85-8", "area_percent": 3.0, "range_min": 1.0, "range_max": 5.0},
+    {"compound_name": "trans-Pinocarveol", "cas_number": "547-61-5", "area_percent": 4.0, "range_min": 1.5, "range_max": 7.0},
+    {"compound_name": "alpha-Pinene", "cas_number": "80-56-8", "area_percent": 3.5, "range_min": 1.0, "range_max": 6.0},
+    {"compound_name": "Pinocarvone", "cas_number": "30460-92-5", "area_percent": 4.5, "range_min": 2.0, "range_max": 8.0},
+    {"compound_name": "Camphene", "cas_number": "79-92-5", "area_percent": 0.8, "range_min": 0.2, "range_max": 1.5},
+    {"compound_name": "beta-Pinene", "cas_number": "127-91-3", "area_percent": 0.5, "range_min": 0.1, "range_max": 1.0},
+    {"compound_name": "Myrtenol", "cas_number": "515-00-4", "area_percent": 2.0, "range_min": 0.5, "range_max": 4.0},
+    {"compound_name": "Nerolidol", "cas_number": "7212-44-4", "area_percent": 1.5, "range_min": 0.3, "range_max": 3.0},
+    {"compound_name": "Angelic acid", "cas_number": "565-63-9", "area_percent": 1.0, "range_min": 0.3, "range_max": 2.5}
+  ],
+  "key_markers": {
+    "7779-81-9": "Isobutyl angelate - dominant ester defining Roman chamomile's sweet-fruity character",
+    "53398-85-9": "2-Methylbutyl angelate - characteristic angelic acid ester contributing to apple-like note",
+    "30460-92-5": "Pinocarvone - bicyclic ketone providing herbaceous depth"
+  },
+  "olfactive_description": "Sweet, fruity-herbaceous with a distinctive warm apple-like ester character. Soft, comforting, and rounded with a slightly green-herbal undertone. Lacks the sharp medicinal quality of German chamomile.",
+  "typical_use_level_percent": 1.0
+}
