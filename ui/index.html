@@ -420,6 +420,7 @@
             </div>
             <div class="header-actions">
                 <span class="chem-count" id="chemCount">Loading...</span>
+                <span id="integrationStatus" class="chem-count" style="cursor:pointer;" onclick="checkIntegrationStatus()" title="smell-reg connectivity">&#9679; smell-reg</span>
                 <button class="help-btn" onclick="showHelp()" data-tooltip="Help (?)">?</button>
             </div>
         </header>
@@ -590,12 +591,15 @@
                         <div id="ingredientsList"></div>
                     </div>
 
-                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="saveFormula()">
                             <span class="btn-icon">&#128190;</span> Save Formula
                         </button>
                         <button onclick="exportFormula()" class="secondary">
                             <span class="btn-icon">&#128196;</span> Export CSV
+                        </button>
+                        <button id="complianceBtn" onclick="showComplianceModal()" class="secondary" title="Check regulatory compliance via smell-reg">
+                            <span class="btn-icon">&#9989;</span> Check Compliance
                         </button>
                         <button onclick="clearFormula()" class="secondary">Clear</button>
                     </div>
@@ -674,6 +678,57 @@
         </div>
     </div>
 
+    <!-- Compliance Check Modal -->
+    <div class="modal-overlay" id="complianceModal" onclick="if(event.target===this) closeComplianceModal()" style="display:none;">
+        <div class="modal" style="position: relative; max-width: 600px;">
+            <button class="modal-close" onclick="closeComplianceModal()">&times;</button>
+            <h2>&#9989; Regulatory Compliance Check</h2>
+            <p style="color: var(--text-muted); margin: 10px 0;">Check formula compliance via smell-reg</p>
+
+            <div style="margin: 16px 0;">
+                <label style="display:block; margin-bottom:6px; color:var(--text-muted); font-size:0.85rem;">Product Type</label>
+                <select id="compProductType" style="width:100%; padding:10px; background:var(--bg-input); color:var(--text); border:1px solid rgba(255,255,255,0.1); border-radius:8px;">
+                    <option value="fine_fragrance">Fine Fragrance</option>
+                    <option value="body_lotion">Body Lotion</option>
+                    <option value="shower_gel">Shower Gel</option>
+                    <option value="shampoo">Shampoo</option>
+                    <option value="deodorant">Deodorant</option>
+                    <option value="candle">Candle</option>
+                    <option value="soap">Soap</option>
+                    <option value="hand_cream">Hand Cream</option>
+                    <option value="lip_product">Lip Product</option>
+                    <option value="air_freshener">Air Freshener</option>
+                </select>
+            </div>
+            <div style="margin: 16px 0;">
+                <label style="display:block; margin-bottom:6px; color:var(--text-muted); font-size:0.85rem;">Markets</label>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="eu" checked> EU</label>
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="us" checked> US</label>
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="uk"> UK</label>
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="ca"> Canada</label>
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="jp"> Japan</label>
+                    <label style="color:var(--text);"><input type="checkbox" class="comp-market" value="cn"> China</label>
+                </div>
+            </div>
+            <div style="margin: 16px 0; display:flex; gap:16px;">
+                <div style="flex:1;">
+                    <label style="display:block; margin-bottom:6px; color:var(--text-muted); font-size:0.85rem;">Fragrance Concentration (%)</label>
+                    <input type="number" id="compConcentration" value="20" min="0.1" max="100" step="0.1" style="width:100%; padding:10px; background:var(--bg-input); color:var(--text); border:1px solid rgba(255,255,255,0.1); border-radius:8px;">
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; margin-bottom:6px; color:var(--text-muted); font-size:0.85rem;">Application</label>
+                    <select id="compLeaveOn" style="width:100%; padding:10px; background:var(--bg-input); color:var(--text); border:1px solid rgba(255,255,255,0.1); border-radius:8px;">
+                        <option value="true">Leave-on</option>
+                        <option value="false">Rinse-off</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="runComplianceCheck()" style="width:100%; margin-top:12px;">&#128269; Run Compliance Check</button>
+            <div id="complianceResults" style="margin-top:16px;"></div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -705,6 +760,7 @@
             await loadReferenceProfiles();
             setupDragDrop();
             setupKeyboardShortcuts();
+            checkIntegrationStatus();
 
             // Show help on first visit
             if (!hasSeenHelp) {
@@ -1167,6 +1223,7 @@
                     description: formula.description || '',
                     ingredients: formula.ingredients || []
                 };
+                currentFormulaId = id;
                 document.getElementById('formulaName').value = currentFormula.name;
                 document.getElementById('formulaDescription').value = currentFormula.description;
                 renderIngredients();
@@ -1445,6 +1502,129 @@
 
             downloadFile(csv, 'gcms_matches.csv', 'text/csv');
             showToast('Matches exported', 'success');
+        }
+
+        // ==================== Integration & Compliance ====================
+        let smellRegConnected = false;
+        let currentFormulaId = null;
+
+        async function checkIntegrationStatus() {
+            const el = document.getElementById('integrationStatus');
+            try {
+                const res = await fetch('/api/integration/status');
+                const data = await res.json();
+                smellRegConnected = data.smell_reg?.connected || false;
+                el.style.color = smellRegConnected ? 'var(--success)' : 'var(--text-muted)';
+                el.title = smellRegConnected ? 'smell-reg: connected' : 'smell-reg: disconnected';
+                const btn = document.getElementById('complianceBtn');
+                if (btn) btn.disabled = !smellRegConnected;
+            } catch {
+                smellRegConnected = false;
+                el.style.color = 'var(--text-muted)';
+            }
+        }
+
+        function showComplianceModal() {
+            if (!currentFormula.ingredients.length) {
+                showToast('Add ingredients first', 'error');
+                return;
+            }
+            document.getElementById('complianceModal').style.display = 'flex';
+            document.getElementById('complianceResults').innerHTML = '';
+        }
+
+        function closeComplianceModal() {
+            document.getElementById('complianceModal').style.display = 'none';
+        }
+
+        async function runComplianceCheck() {
+            const resultsEl = document.getElementById('complianceResults');
+            resultsEl.innerHTML = '<p style="color:var(--text-muted);">Running compliance check...</p>';
+
+            // We need a saved formula ID. Save first if needed.
+            if (!currentFormulaId) {
+                try {
+                    const saveRes = await fetch('/api/formulas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: currentFormula.name || 'Untitled',
+                            ingredients: currentFormula.ingredients,
+                        })
+                    });
+                    const saved = await saveRes.json();
+                    currentFormulaId = saved.id;
+                } catch {
+                    resultsEl.innerHTML = '<p style="color:var(--danger);">Failed to save formula for check.</p>';
+                    return;
+                }
+            }
+
+            const markets = Array.from(document.querySelectorAll('.comp-market:checked')).map(cb => cb.value);
+            if (!markets.length) {
+                resultsEl.innerHTML = '<p style="color:var(--danger);">Select at least one market.</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/formulas/${currentFormulaId}/compliance-check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_type: document.getElementById('compProductType').value,
+                        markets: markets,
+                        fragrance_concentration: parseFloat(document.getElementById('compConcentration').value),
+                        is_leave_on: document.getElementById('compLeaveOn').value === 'true',
+                    })
+                });
+
+                if (res.status === 503) {
+                    resultsEl.innerHTML = '<p style="color:var(--danger);">smell-reg service unavailable.</p>';
+                    return;
+                }
+
+                const data = await res.json();
+                renderComplianceResults(data, resultsEl);
+            } catch (err) {
+                resultsEl.innerHTML = `<p style="color:var(--danger);">Error: ${escapeHtml(err.message)}</p>`;
+            }
+        }
+
+        function renderComplianceResults(data, el) {
+            const results = data.results || [];
+            const violations = results.filter(r => r.status === 'non_compliant');
+            const warnings = results.filter(r => r.status === 'warning');
+            const compliant = violations.length === 0;
+
+            let html = `<div style="padding:12px; border-radius:8px; margin-bottom:12px; background:${compliant ? 'rgba(76,175,80,0.15)' : 'rgba(244,67,54,0.15)'};">
+                <strong style="color:${compliant ? 'var(--success)' : 'var(--danger)'};">
+                    ${compliant ? '&#9989; COMPLIANT' : '&#10060; NON-COMPLIANT'}
+                </strong>
+                <span style="color:var(--text-muted); margin-left:8px;">${violations.length} violation(s), ${warnings.length} warning(s)</span>
+            </div>`;
+
+            if (violations.length) {
+                html += '<h4 style="color:var(--danger); margin:8px 0;">Violations</h4>';
+                violations.forEach(v => {
+                    html += `<div style="padding:8px 12px; background:rgba(244,67,54,0.08); border-radius:6px; margin-bottom:6px; font-size:0.9rem;">
+                        <strong>${escapeHtml(v.ingredient_name || v.cas_number || '')}</strong>:
+                        ${escapeHtml(v.requirement || v.details || '')}
+                        ${v.current_value != null ? ` (${v.current_value}% &gt; limit ${v.limit_value}%)` : ''}
+                    </div>`;
+                });
+            }
+
+            if (warnings.length) {
+                html += '<h4 style="color:var(--warning); margin:8px 0;">Warnings</h4>';
+                warnings.forEach(w => {
+                    html += `<div style="padding:8px 12px; background:rgba(255,152,0,0.08); border-radius:6px; margin-bottom:6px; font-size:0.9rem;">
+                        <strong>${escapeHtml(w.ingredient_name || w.cas_number || '')}</strong>:
+                        ${escapeHtml(w.requirement || w.details || '')}
+                    </div>`;
+                });
+            }
+
+            el.innerHTML = html;
         }
 
         // ==================== Utilities ====================

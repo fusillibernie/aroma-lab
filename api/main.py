@@ -2,6 +2,7 @@
 Aroma Lab API - FastAPI backend for fragrance formulation and GC-MS reconstruction
 """
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +22,7 @@ from src.parsers.csv_parser import CSVParser
 from src.parsers.agilent_parser import AgilentParser
 from src.parsers.shimadzu_parser import ShimadzuParser
 from src.parsers.nist_parser import NISTParser
+from src.integrations.smell_reg_client import get_smell_reg_client
 
 
 def dict_to_aromachemical(d: dict) -> Aromachemical:
@@ -42,10 +44,19 @@ def dict_to_aromachemical(d: dict) -> Aromachemical:
 
 limiter = Limiter(key_func=get_remote_address)
 
+
+@asynccontextmanager
+async def lifespan(app):
+    yield
+    client = get_smell_reg_client()
+    await client.close()
+
+
 app = FastAPI(
     title="Aroma Lab",
     description="Fragrance reconstruction from GC-MS analysis",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan,
 )
 
 app.state.limiter = limiter
@@ -53,7 +64,10 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(","),
+    allow_origins=os.environ.get(
+        "CORS_ORIGINS",
+        "http://localhost:8000,http://127.0.0.1:8000,http://localhost:8001,http://127.0.0.1:8001"
+    ).split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -988,6 +1002,145 @@ async def get_suggestions(formula_id: str, application: str = "fine_fragrance"):
         "application": application,
         "suggestions": suggestions,
     }
+
+
+# ==================== Health & Integration Endpoints ====================
+
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "aroma-lab"}
+
+
+@app.get("/api/integration/status")
+async def integration_status():
+    """Check connectivity to sibling services."""
+    client = get_smell_reg_client()
+    smell_reg_healthy = await client.check_health()
+    return {
+        "smell_reg": {
+            "connected": smell_reg_healthy,
+        }
+    }
+
+
+@app.get("/api/ifra-restrictions")
+async def get_ifra_restrictions():
+    """Return IFRA restriction data from local JSON.
+
+    This endpoint allows smell-reg to fetch restrictions via HTTP
+    instead of requiring filesystem access.
+    """
+    ifra_path = DATA_DIR / "literature" / "ifra_restrictions.json"
+    if not ifra_path.exists():
+        raise HTTPException(status_code=404, detail="IFRA restrictions data not found")
+    with open(ifra_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ==================== Cross-Service Compliance ====================
+
+VALID_PRODUCT_TYPES = {
+    "fine_fragrance", "body_lotion", "shower_gel", "shampoo", "deodorant",
+    "candle", "soap", "hand_cream", "lip_product", "air_freshener",
+    "face_cream", "baby_product", "hair_styling", "mouthwash",
+    "household_cleaner", "reed_diffuser",
+}
+VALID_MARKETS = {"us", "eu", "uk", "ca", "jp", "cn", "au", "br"}
+
+
+class ComplianceCheckBody(BaseModel):
+    product_type: str
+    markets: list[str]
+    fragrance_concentration: float = Field(default=100.0, gt=0, le=100)
+    is_leave_on: bool = True
+
+
+@app.post("/api/formulas/{formula_id}/compliance-check")
+@limiter.limit("10/minute")
+async def check_formula_compliance(request: Request, formula_id: str, body: ComplianceCheckBody):
+    """Run a full regulatory compliance check on a formula via smell-reg.
+
+    This proxies the formula to smell-reg's compliance engine for
+    IFRA, allergen, VOC, and market-specific checks.
+    Returns 503 if smell-reg is unavailable.
+    """
+    if body.product_type not in VALID_PRODUCT_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid product type: {body.product_type}")
+    invalid_markets = set(body.markets) - VALID_MARKETS
+    if invalid_markets:
+        raise HTTPException(status_code=400, detail=f"Invalid markets: {sorted(invalid_markets)}")
+
+    if formula_id not in formulas_db:
+        raise HTTPException(status_code=404, detail="Formula not found")
+
+    formula = formulas_db[formula_id]
+    ingredients = formula.get("ingredients", [])
+
+    # Build the payload in smell-reg's expected format
+    formula_payload = {
+        "name": formula.get("name", "Unnamed"),
+        "ingredients": [
+            {
+                "cas_number": ing.get("cas_number", ""),
+                "name": ing.get("name", ""),
+                "percentage": ing.get("percentage", 0),
+            }
+            for ing in ingredients
+            if ing.get("cas_number")
+        ],
+    }
+
+    client = get_smell_reg_client()
+    result = await client.check_compliance(
+        formula_data=formula_payload,
+        product_type=body.product_type,
+        markets=body.markets,
+        fragrance_concentration=body.fragrance_concentration,
+        is_leave_on=body.is_leave_on,
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Regulatory compliance service (smell-reg) is unavailable",
+        )
+
+    return result
+
+
+# ==================== Enriched Chemical Data ====================
+
+@app.get("/api/aromachemicals/{cas_number}/enriched")
+@limiter.limit("30/minute")
+async def get_enriched_aromachemical(request: Request, cas_number: str):
+    """Get chemical data enriched with regulatory info from smell-reg.
+
+    Returns chemical properties from aroma-lab merged with regulatory
+    data from smell-reg (if available). Falls back to chemical-only
+    data if smell-reg is unreachable.
+    """
+    if not re.match(r"^\d{1,7}-\d{2}-\d$", cas_number):
+        raise HTTPException(status_code=400, detail="Invalid CAS number format")
+
+    chemicals = load_aromachemicals()
+    chemical = None
+    for chem in chemicals:
+        if chem.get("cas_number") == cas_number:
+            chemical = chem
+            break
+
+    if chemical is None:
+        raise HTTPException(status_code=404, detail="Aromachemical not found")
+
+    result = {**chemical, "regulatory": None}
+
+    client = get_smell_reg_client()
+    reg_info = await client.get_regulatory_info(cas_number)
+    if reg_info is not None:
+        result["regulatory"] = reg_info
+
+    return result
 
 
 # Mount static files for UI assets
