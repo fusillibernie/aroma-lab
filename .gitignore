@@ -66,6 +66,9 @@ CLAUDE.md
 .env
 *.key
 
+# Local launchers
+launch.bat
+
 # OS
 .DS_Store
 Thumbs.db
